@@ -1,0 +1,7 @@
+**/node_modules
+**/.venv
+frontend/dist
+backend/.env
+backend/.master_key
+backend/respaldos
+backend/logs

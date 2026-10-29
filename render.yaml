@@ -1,0 +1,30 @@
+# Blueprint de Render: backend (Docker, con Tesseract y tareas automáticas) + PostgreSQL, ambos en plan gratuito.
+# El frontend se publica aparte en Vercel (frontend/vercel.json) y llama a este backend.
+databases:
+  - name: votoseguro-db
+    plan: free
+    databaseName: votoseguro
+    user: votoseguro
+
+services:
+  - type: web
+    name: votoseguro-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/salud
+    envVars:
+      - key: VOTOSEGURO_DATABASE_URL
+        fromDatabase:
+          name: votoseguro-db
+          property: connectionString
+      # Se piden al crear el servicio. La clave maestra debe guardarse aparte: sin ella los datos no se recuperan.
+      - key: VOTOSEGURO_MASTER_KEY
+        sync: false
+      - key: VOTOSEGURO_ADMIN_PASSWORD
+        sync: false
+      # Dominios del proyecto "votoseguro" en Vercel, incluidas sus vistas previas (votoseguro-xxxx.vercel.app).
+      - key: VOTOSEGURO_CORS_ORIGEN_REGEX
+        value: https://votoseguro(-[a-z0-9-]+)?\.vercel\.app
+      - key: VOTOSEGURO_SEMBRAR_DATOS_DEMO
+        value: "true"

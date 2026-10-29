@@ -1,0 +1,680 @@
+---
+titulo: "Prototipo de un sistema web de votación electrónica basado en criptografía de curva elíptica y plantilla biométrica que garantice los principios del voto en Bogotá"
+tipo: Trabajo de Grado (requisito parcial para optar al título de Ingeniero de Software)
+autores:
+  - Marcelo Rubio, Nicolas
+  - Mendoza Huertas, Mario
+  - Riveros Acevedo, Julieth Camila
+tutora: "Olga Lucía Roa Bohórquez (Mg. Ingeniería de Sistemas y Computación)"
+institucion: "Universidad Manuela Beltrán — Facultad de Ingeniería, Ingeniería de Software"
+lugar: Bogotá D.C., Colombia
+anio: 2026
+idioma: es
+palabras_clave: [voto electrónico, democracia, biometría, cifrado, seguridad]
+---
+
+# Prototipo de un sistema web de votación electrónica basado en criptografía de curva elíptica y plantilla biométrica que garantice los principios del voto en Bogotá
+
+- **Autores:** Nicolas Marcelo Rubio, Mario Mendoza Huertas, Julieth Camila Riveros Acevedo
+- **Tutora:** Olga Lucía Roa Bohórquez, Mg. Ingeniería de Sistemas y Computación
+- **Institución:** Universidad Manuela Beltrán — Ingeniería de Software, Facultad de Ingeniería
+- **Lugar y año:** Bogotá D.C., Colombia, 2026
+
+## Autoridades académicas
+
+- Dra. Alejandra Acosta Henríquez — Rectora
+- Dra. Claudia Milena Combita López — Vicerrector Académico
+- Dr. Fredy Alberto Sanz Ramírez — Vicerrectora de Investigaciones
+- Dra. Aida Judith Daza Pinzón — Vicerrectora de Estudiantes
+- Dr. Daniel Alexander Cruz Barrera — Director del Programa de Ingeniería de Software
+
+## Dedicatoria
+
+Le dedicamos el resultado de este trabajo a nuestras familias y amigos que nos apoyaron durante todo el proceso de aprendizaje, quienes estuvieron en cada etapa de desarrollo de nosotros como profesionales y personas, donde su confianza y respaldo nos motivaban a seguir adelante y nos acompañaron en los momentos buenos y malos. También, a nuestros docentes que nos guiaron en durante la formación académica.
+
+## Agradecimientos
+
+Queremos agradecer a nuestra tutora Olga Lucía Roa Bohórquez, por su apoyo, paciencia y comprensión con el desarrollo de nuestro trabajo de grado. Su experiencia y constante orientación fue cruciales en la dirección y desarrollo de este trabajo de grado. No tenemos palabras para expresar nuestra gratitud por toda su compañía y apoyo durante este proceso. Nos gustaría agradecer a la Universidad Manuela Beltrán por fomentar nuestro desarrollo de investigación y al departamento de ingeniería de software por su fe en nuestras habilidades y disposición de ayuda para la realización del trabajo.
+
+Yo, Nicolas Marcelo Rubio, quiero agradecer especialmente a mis padres Rocio Edith Rubio Avila y Camilo Horacio Marcelo Gil, a mis queridos compañeros felinos Axl Rose Marcelo y Agatha Marcelo, por su amor incondicional y siempre estar para mí en cualquier momento que lo necesitaba.
+
+Yo, Mario Mendoza Huertas, quiero agradecer a mi madre Blanca Liliana Huertas Velasco, a mi hermano Sebastián Mendoza Huertas y a mis abuelos Gabriel Alfonso Combita Guevara y Edilma Velasco Mujica, por apoyarme en todo el proceso que ha conllevado la culminación de mi carrera y de este proyecto.
+
+Yo, Julieth Camila Riveros Acevedo, quiero agradecer a mi madre Dora Marleny Riveros Acevedo, a mi padrastro Jose Norberto Paez Barbosa, a mi hermana Yensy Lorena Villamil Riveros y a mi pareja Daniel Esneider Ramirez Vargas, por brindarme su amor y su tiempo incondicional, quienes estaban cuando más los necesitaba y son los que han guiado mi camino para poder culminar mi proceso académico.
+
+A cada uno de los mencionados, nuestros más profundos agradecimientos.
+
+## Resumen
+
+El presente trabajo tiene como objetivo principal desarrollar un prototipo de un sistema web de votación electrónica basado en criptografía de curva elíptica y plantilla biométrica que garantice los principios del voto en Bogotá. La investigación se realizará en la ciudad de Bogotá con una prueba piloto de una población de 100 personas, que se encuentran distribuidos en las localidades de Ciudad Bolívar, Usme, Fontibón y Rafael Uribe Uribe, con edades entre los 18 y 70 años, y se considera incluir personas con discapacidades para poder evaluar la plataforma. Durante el desarrollo del sistema se pretende usar plantillas biométricas para la autenticación de los votantes y el cifrado de toda la información, ya que se maneja información sensible y de extremo cuidado, esto con el fin de permitir la integridad de los datos, la seguridad completa del sistema y que se pueda mantener en anónimo los votos, siendo este un principio importante del voto. Con la elaboración de este proyecto se espera presentar una alternativa tecnológica que aporte a las investigaciones futuras sobre el voto electrónico en Colombia, se proyecta entregar un prototipo funcional que sea seguro y confiable para la comunidad y sea de impacto para fortalecer los procesos electorales.
+
+Palabras clave: Voto electrónico, democracia, biometría, cifrado, seguridad.
+
+## Abstract
+
+The main objective of this work is to develop a prototype of a web-based electronic voting system using elliptic curve cryptography and a biometric template that guarantees the principles of voting in Bogotá. The research will be conducted in Bogotá with a pilot test involving 100 people, aged 18 to 70, distributed across the districts of Ciudad Bolívar, Usme, Fontibón, and Rafael Uribe Uribe. Participants will be included in the pilot program, with the intention of including people with disabilities to evaluate the platform. During system development, biometric templates will be used for voter authentication and encryption of all information, given the sensitive and highly sensitive nature of the data. This is to ensure data integrity, complete system security, and the anonymity of votes, a crucial principle of voting. This project aims to present a technological alternative that contributes to future research on electronic voting in Colombia. The goal is to deliver a functional prototype that is secure and reliable for the community and will have a significant impact on strengthening electoral processes.
+
+Keywords: Electronic voting, democracy, biometrics, encryption, security.
+
+# Introducción
+
+En las últimas décadas el concepto de _e-voting_ o votación electrónica ha tenido lugar en las discusiones de aquellos involucrados en las TIC, dando origen al concepto de _edemocracy_ o también denominado democracia digital. Colombia no ha sido indiferente con el tema en cuestión e incluso implementó la ley 882 de 2004 por el cual “se establece nuevos mecanismos de votación e inscripción para garantizar el libre ejercicio de este derecho, en desarrollo del artículo 258 de la constitución nacional” ( _Ley 892 de 2004 - Gestor Normativo_ , s.f.).
+
+Sin embargo, la idea de votación electrónica representa un desafío con respecto a las propiedades básicas del voto en democracias-representativas las cuales son mencionadas por Romero et al. (2021) que consisten en el voto secreto, la legitimidad, elegibilidad, la precisión, la verificación, la resistencia a la coacción y la disponibilidad.
+
+Son estas mismas las que colocan una barrera para la implementación del _evoting,_ puesto que, se resaltan dudas del método que cumpla con todos los principios. Se ha hablado de la implementación del voto electrónico con el Blockchain, Cifrado homomórfico, Helios, entre otros. Presentando así un aumento en la dificultad de la implementación (como el Blockchain) o saltando los principios mencionados anteriormente (como Helios), entonces surge diferentes dudas de como implementamos un sistema e-voting en Colombia remoto que cumpla con los requisitos del voto. En la presente investigación se propone la alternativa de un software que cumpla con los principios básicos del voto y la criptografía de los datos de manera que cumpla con requisitos de seguridad para el votante siendo capaz de ser verificada la legitimidad del voto sin comprometer el anonimato del votante, haciendo uso de la criptografía elíptica y plantilla biométrica para la protección de datos de los usuarios.
+
+# Capítulo I: Descripción del proyecto
+
+Este capítulo presenta el contexto general de la investigación sobre el voto electrónico en Colombia en la ciudad de Bogotá. Primeramente, se describe el planteamiento del problema, señalando que, aunque en el 2004 se propuso la implementación del voto electrónico en el país, su desarrollo e implementación se han limitado en comparación con otras naciones como Brasil e India. Asimismo, se analiza el fenómeno del abstencionismo electoral y la falta de estudios que permitan determinar si la implementación del voto electrónico podría influir en la participación democrática en Colombia. Igualmente se revisa algunos antecedentes internacionales que muestran los beneficios y desafíos de estos sistemas, especialmente en términos de eficiencia, rapidez en el conteo de votos y transparencia en los procesos electorales colombianos.
+
+Consecutivamente, el capítulo expone la justificación y los objetivos de la investigación. Se argumenta la importancia del proyecto desde perspectivas democráticas, tecnológicas y sociales, destacando con el uso de tecnologías. Finalmente, se presentan el objetivo general y los objetivos específicos del estudio, los cuales se orientan al desarrollo de un prototipo de sistema web de votación electrónica que garantice la identidad de los votantes, la integridad del voto y la seguridad de la información, mediante la interfaz accesible, una base de datos segura y mecanismos avanzados de protección de datos.
+
+## 1.1 Planteamiento del Problema de Investigación
+
+Desde el año 2004 Colombia propone la idea del voto electrónico, siendo que otros países como Venezuela, Brasil e India lo han implementado, creando así una nueva alternativa para la participación democrática de los ciudadanos colombianos teniendo como hipótesis el posible aumento en la participación democrática, sin embargo, el avance en el e-voting ha sido escaso y no se ha contado con una investigación que describa un sistema de voto electrónico en Colombia que tenga como fin la recolección de datos para su análisis posterior en un ámbito controlado. (Hernández, 2025)
+
+Según la especialista (Poveda, s.f) el abstencionismo electoral se define como el acto de no votar teniendo derecho a ello, mencionando los diferentes tipos de abstencionismo; los cuales serían: Abstención Técnica, Política, Apática y Cívica. Si bien menciona que no hay evidencias en que el voto electrónico disminuya el abstencionismo colombiano, autores como (Reyes, 2020) resaltan el poco avance que ha tenido el voto electrónico en la nación en contraste con la e-Participación, la cual consiste en la participación electrónica refiriéndose al uso de tecnologías TIC para facilitar la participación ciudadana en los procesos del gobierno. En este orden de ideas es difícil saber qué clase de impacto tendrá el e-voting con respecto al abstencionismo colombiano, ya que, se cuenta con poca literatura en este tema.
+
+Por ejemplo, desde 1995 Brasil estableció las directrices funcionales para las urnas electrónicas y autorizó su despliegue gradual, hasta llegar al 100% de su automatización, logrando la eficacia y agilidad en el proceso electoral, se resalta la rapidez con la que se realiza el conteo de votos, siendo que, en las votaciones de 2022 ambas rondas electorales tomaron 30 días en contraposición de los meses que hubiera llevado mediante el conteo manual. Ocurrió lo mismo en la india en el 2019, mediante los EVM (urnas electrónicas) fueron usadas para procesar más de 614 millones de votos, logrando resultados en unos pocos días. (Hernández, 2025).
+
+En el 2024, Venezuela el 28 de julio realizó las votaciones presidenciales entre los candidatos Maduro y Gonzales, siendo ganador Gonzales, teniendo como evidencia el sistema de votación electrónico que cuenta Venezuela, entonces el por qué maduro continua en la presidencia y no Gonzales se debe a que independientemente del sistema de votación, cuando se enfrenta a un totalitarismo es difícil poder realizar los actos democráticos correctos. Este es un claro ejemplo de cómo la votación electrónica es una herramienta poderosa que incluso sirve como sustento de que Venezuela dejó de ser una democracia-representativa (Kronick, 2024).
+
+Lo anterior son ejemplos, aunque no directos del e-voting remoto que nos otorgan un panorama sobre como la implementación de la votación electrónica es beneficiosa y óptima para la votación democrática en una nación. En este contexto, el problema que se busca abordar es el aporte al desarrollo de sistemas de votación electrónica remota con la robustez necesaria para prevenir el fraude y corrupción, cumpliendo los principios fundamentales de la votación y fomentando la confianza de los ciudadanos. a) Formulación o enunciado del problema.
+
+¿De qué forma el desarrollo de un prototipo funcional de sistema web de votación electrónica, que use la criptografía de curva elíptica y plantillas biométricas, puede garantizar los principios básicos del voto en Bogotá? b) Delimitación o alcance del problema.
+
+Con lo anterior, se propone desarrollar un prototipo de un sistema web de votación electrónica que cuente con la criptografía de curva elíptica para el cifrado de datos sensibles, el uso de plantilla biométrica para la autenticación y validación del votante, el diseño y creación de una base de datos para el sistema y el desarrollo de una página web donde se reunirán todos estos subsistemas para darle lugar al sistema en general. Delimitando el alcance del proyecto en una prueba piloto en una muestra de 100 personas que se encuentran distribuidas en las localidades Rafael Uribe Uribe, Fontibón, Ciudad Bolívar y Usme en la ciudad de Bogotá, estando en un rango de edades entre los 18 y 70 años; siendo que también se contará con la participación de personas discapacitadas. Dichas actividades se llevarán a cabo en un periodo de 4 semestres.
+
+## 1.2 Justificación en términos de necesidades y pertinencia de la investigación
+
+El fortalecimiento de la democracia y el aumento en la confianza ciudadana es un objetivo fundamental que debería tener todas las naciones del mundo, siendo el voto una herramienta que hace parte de una democracia representativa. Entonces la implementación de tecnología en el voto no es un lujo, es una necesidad que puede avivar la confianza institucional en los colombianos, la cual se ha ido perdiendo en el tiempo. (Pumarejo, 2021)
+
+Es así como un proyecto sobre el voto electrónico en Colombia es llamativo e históricamente factible, ya que, con el COVID-19 la sociedad colapsó y con ella la democracia; varios países tuvieron que suspender sus procesos democráticos durante la crisis y facilitar la participación democrática en “tiempos normales”. Con esto la sociedad cambió y con los ciudadanos modernizados en el uso de tecnologías, la implementación del voto electrónico se hace más viable a diferencia de los principios en los 2000. (Turnbull-Dugarte, Devine, 2023)
+
+Desde la perspectiva tecnológica, los avances tecnológicos y criptográficos ofrecen un catálogo de herramientas robustas que pueden suplir las necesidades que requiere el sistema para que genere la confianza y tranquilidad de los votantes, siendo una de estas la criptografía elíptica (ECC) la cual nos otorga una complejidad para el descifre de datos y, un bajo consumo computacional, perfecta para entornos de conectividad limitada como varias regiones de la nación. También la plantilla biométrica nos garantizar la autenticidad de la persona lo cual fortalece la validez de los votos.
+
+Por otro lado, en el ámbito social la implementación de un sistema de votación electrónico remoto podría ampliar el acceso al voto para colombianos que se encuentren en el exterior, personas con movilidad reducida, personas discapacitadas, hospitalizadas o en zonas apartadas del país, contribuyendo en un alce de inclusión y participación política. Además, se hace más “sencillo” el proceso de ir a votar, puesto que, es más probable que una persona voté sin interrumpir su tarde de Netflix (Turnbull-Dugarte, Devine, 2023)
+
+Por último, en el ámbito científico, la implementación de este sistema aportaría grandemente en la literatura del voto electrónico que hay en Colombia, des/confirmado la hipótesis sobre la disminución en el abstencionismo colombiano, dado que, se han realizado investigaciones con respecto al voto electrónico y el aumento participativo ciudadano que tendría esta alternativa en otros países como Ginebra, Suiza y Zúrich (Germann && Serdült, 2017). Es así como este proyecto se nutre de varias razones para demostrar su valía y la importancia que tiene este en diferentes campos.
+
+## 1.3 Objetivos: General y específicos
+
+### 1.3.1 Objetivo general
+
+Desarrollar el prototipo de un sistema web de votación electrónica y accesible que integre mecanismos de seguridad criptográfica y autenticación biométrica para garantizar la identidad, asegurar la confiabilidad e integridad del voto para los votantes en el contexto de Bogotá.
+
+### 1.3.2 Objetivos específicos
+
+1. Diseñar una página web con una UI accesible y usable para que los votantes puedan emitir su voto de manera clara y segura en línea en Bogotá.
+
+2. Construir una base de datos segura para almacenar las plantillas biométricas y los datos sensibles aplicando controles de acceso y cifrado, para los votantes en Bogotá.
+
+3. Implementar un sistema de autenticación biométrica que capture y valide la identidad de los votantes en Bogotá.
+
+4. Integrar un mecanismo de seguridad basado en ECC (Criptografía de curva elíptica) para proteger los datos sensibles de los votantes en Bogotá.
+
+# Capítulo II: Marco teórico y Referencial
+
+Este capítulo presenta los antecedentes, fundamentos teóricos, variables y bases legales que sustentan el desarrollo del sistema de votación electrónico. En primer lugar, se exponen antecedentes de investigación internacionales relacionadas con el voto electrónico, la seguridad y autenticidad del voto. Se estudian los casos de Estonia y Ghana, así como revisiones sobre seguridad, verificabilidad, aceptación ciudadana y protección ha mostrado avances significativos y resultados positivos en distintos contextos, aún existen desafíos conexos con la seguridad, la transparencia, la confianza ciudadana y la protección frente a ataques tecnológicos.
+
+Seguidamente, el capítulo desarrolla las bases teóricas, variables y marco legal de la investigación. Se describe los principios de la votación electrónica y las características principales del voto las cuales son el voto secreto, la legitimidad, la elegibilidad, la precisión, la verificabilidad, la resistencia a la coacción y la disponibilidad. También, se analizan las tecnologías para cumplir con dichas características como la criptografía de curva elíptica y la autenticación biométrica con plantilla biométrica. Finalmente, se presentan las bases legales del proyecto en el marco colombiano, destacando normas como la constitución política de Colombia, la ley 1475 del estado colombiano entre otras.
+
+## 2.1 Antecedentes de la Investigación
+
+En los últimos años la investigación sobre el voto electrónico se ha orientado hacia la coordinación entre la seguridad, la verificabilidad y lo más importante, la aceptación ciudadana. En Estonia, Ehin et al. (2022) realizaron un estudio sobre un despliegue real de voto electrónico, donde analizaron la adopción de este nuevo método, los riesgos que conllevan y los ajustes al cual debe someterse, mediante las encuestas, estadísticas de uso y la revisión de auditorías de seguridad. Este estudio demostró que Estonia logro una alta capacidad para adaptarse a la nueva metodología y una buena aceptación, sin embargo, las revisiones identificaron vulnerabilidades y una parte de la seguridad depende de la participación de los votantes en el momento de su verificación.
+
+Otro estudio realizado en el mismo país, Zhang et al. (2021) implementó el primer análisis formal de seguridad en el sistema, ya que el voto por internet fue utilizado en Estonia desde el 2005, el estudio se realizó en el año 2021 basándose en la última versión que se llevó a cabo en el 2018 (de nombre con código IVXV), todo esto con el fin de evaluar la verificabilidad y seguridad, mediante pruebas dentro del marco de Universal Composability, el cual se usa para diseñar y verificar la seguridad de protocolos criptográficos, también usaron datos experimentales de auditorías realizadas. El análisis mostro que IVXV proporciona las garantías necesarias para la verificabilidad y así la seguridad efectiva depende de la tasa de votantes que usen la herramienta de verificación y su honestidad.
+
+Una revisión que se realizó sobre varios pilotos de voto electrónico donde el centro de la investigación fue la seguridad y la aceptación, mediante encuestas a los usuarios y análisis de los incidentes que se presentaron, se logró identificar que la mayoría de las implementaciones de los sistemas piloto presentan problemas de seguridad, una baja cobertura de auditoria verificable y falencias en la transparencia institucional, sin embargo, lo que se quiere resaltar es que los sistemas piloto muestran que la intención del voto electrónico es una mejora, pero su adaptación real depende de mecanismos verificables como lo es el E2E (metodología de pruebas sobre el funcionamiento completo de un sistema de principio a fin) para una mayor seguridad (Turnbull-Dugarte et al., 2023).
+
+Con respecto a la verificación biométrica para la votación, las investigaciones se centran en la protección de plantillas biométricas, Abd El-Rahiem et al. (2021) en su estudio presenta un esquema multi-biométrico cancelable donde las plantillas son sometidas a transformaciones no reversibles mediante un cifrado selectivo, con el fin de evaluar la seguridad de la plantilla con su precisión de reconocimiento, validando la resistencia frente a algunos ataques, asegurando que el balance entre seguridad y precisión es necesario evaluarlo en escenarios y pruebas de ataque reales. Así mismo, un estudio basado en la encriptación homomórfica (HE), siendo esta una técnica que permite realizar acciones sobre datos cifrados sin necesidad de descifrarlos primero realizó un análisis de categorización de esquemas HE y sus costos, obteniendo así un prometedor resultado, asegurando la privacidad de la verificación biométrica, aunque, conlleva un alto costo monetario (Yang et al., 2023).
+
+En concordancia con Yang et al. (2023), se realizó una revisión amplia de ataques y protecciones sobre las plantillas biométricas, mediante un análisis crítico de literatura reciente, categorización de ataques y mitigaciones, concluyendo así que no existe una única solución, recomendando técnicas hibridas que ofrecen una mayor cobertura en la seguridad (cancelable + HE), en el caso del voto electrónico se recomienda una estrategia de defensa profunda con auditorias periódicas y evaluación en diferentes escenarios (Abdullahi et al., 2024).
+
+La seguridad de reconocimiento facial es de suma importancia, ya que los ataques digitales o físicos frente a los sistemas de reconocimiento facial demuestra que estos pueden ser engañados por alteraciones, Vakhshiteh et al. (2020) en su estudio sobre estos ataques y su clasificación de estos se revisó mediante la generación de varios ataques físicos y la agrupación de los resultados, también se evaluaron técnicas de defensa. Lo que implica integrar controles de detección de vida o de ataques, un despliegue de un piloto práctico que usa E2E-verifiable en un ensayo real, se midió la usabilidad y la participación en verificación, mediante recolección de métricas, encuestas post voto y análisis de logs de verificación, se logró verificar que técnicamente el E2E funciona y los usuarios valoraron positivamente la facilidad de uso (Druliac et al., 2024).
+
+Un aspecto importante para tener en cuenta es la participación ciudadana, ya que los votantes deben confiar en el sistema de votación para poder participar en las elecciones. Se realizó un estudio donde se midió la confianza de los sistemas de votación (TVS) desde la perspectiva ciudadana, mediante encuestas con muestras representativas, análisis de transparencia, de control y de historial de sucesos, demostrando que la confianza depende del sistema completo, es esencial trabajar en la confianza de la ciudadanía, mediante la legalidad y la transparencia de los mecanismos verificables (Acemyan et al., 2022).
+
+En Ghana, se realizó un estudio para medir la aceptación ciudadana frente a la implementación del voto electrónico y que tan dispuestos están las personas para aceptar un nuevo sistema electoral, realizaron las mediciones con un modelo UTAUT (Teoría Unificada de Aceptación y Uso de la Tecnología), un modelo que explica la intención y el comportamiento de los usuarios al adoptar y utilizar una tecnología, aplicaron también un cuestionario online y el análisis de datos cuantitativos, obteniendo así, que existe una visión muy positiva de los ciudadanos de Ghana frente al sistema de voto electrónico, mostrando confianza y aceptación al uso de este, sin embargo, se recomienda trabajar en educación, accesibilidad, transparencia e infraestructura para disminuir barrearas que se puedan presentar (Kubuga et al,. 2023). En definitiva, el sistema de voto electrónico mediante el reconocimiento facial es un proyecto con un gran reto, donde se deben de cubrir varios desafíos que trae consigo, sin embargo, son investigaciones que ya tienen antecedentes sólidos, con resultados positivos y recomendaciones para tener en cuenta durante su desarrollo, demostrando avances significativos.
+
+## 2.2 Bases o fundamentos teóricos
+
+El voto electrónico se ha considerado una gran alternativa innovadora para renovar los sistemas electorales tradicionales, teniendo como objetivo reducir los errores humanos y los fraudes, garantizando las fases de las elecciones (emisión, registro, transmisión y conteo de votos), con el fin de cumplir los principios básicos del voto los cuales son mencionados por Romero et al. (2021).
+
+Entre los principios básicos del voto se encuentra el voto secreto donde solo el votante debe saber cuál es la opción votada. En un sistema de votación electrónica, este requisito implica que se debe salvaguardar la confidencialidad de la información de los votantes respecto a atacantes, y además respecto a la propia entidad que organiza el proceso de votación. De igual manera, la legitimidad permite el voto a personas registradas previamente, es decir, no se permiten los votos emitidos por aquellos no registrados. En un sistema electrónico se cumple la garantía de este requisito. Así mismo, al igual que no se permite votantes no legítimos, la elegibilidad permite que los votantes legítimos tengan derecho a emitir un único voto, en otras palabras, solo pueden votar una vez y se evitan duplicaciones.
+
+También, la precisión es donde el recuento final de votos refleja todos los votos legítimos, sin alteraciones desde que se emiten hasta el recuento. Esta propiedad corresponde con otra dimensión básica de la seguridad social de la información. A su vez, la verificabilidad es por la cual el votante puede verificar el correcto funcionamiento del proceso electoral en el que ha participado. Se distinguen la verificación extrema a extremo, además que la votación es auditable por terceros independientes, que determinan con la información accesible si ha habido corrupción o no.
+
+Por su parte, la resistencia a la coacción es la capacidad del votante a elegir la opción que desee incluso bajo coacción, amenaza o chantaje de un tercero. Una forma popular de obtenerlo es la imposibilidad de demostrar el voto propio. Se desconoce a que postulado se escogió, con evidencia de haber emitido el voto. Y finalmente, la disponibilidad del sistema donde debe estar completamente accesible durante el proceso de votación.
+
+Según las investigaciones, el voto electrónico ha tenido una gran evolución en cuanto a los principios básicos del voto. En el caso de Estonia, se implementó un sistema de voto por internet desde el 2005, que ha mostrado resultados muy exitosos, logrando una elevada aceptación social, sin embargo, aún tiene desafíos los cuales se deben cubrir en relación con la verificación de la persona que realiza el voto y la auditoria del sistema electoral (Ehin et al., 2022; Zhang et al., 2021).
+
+En el contexto colombiano, la Registraduría Nacional del Estado Civil (RNEC) lleva varios años realizando diversos pilotos de votos electrónicos y autenticación biométrica, esto con el fin de evaluar si es viable o no este tipo de sistemas y la integración con los mecanismos biométricos. Según la registraduría, ya han realizado pruebas en más de cuarenta procesos electorales con dispositivos biométricos para identificar de forma segura al elector, estas acciones reflejan el compromiso de la entidad con la incorporación de nuevas tecnologías, procesos que se lleva a cabo progresivamente (Registraduría Nacional, Nuevas Tecnologías, 2025).
+
+El principal desafío de la implementación del voto electrónico es la seguridad, ya que los sistemas deben garantizar la confidencialidad, la integridad y la verificabilidad. En Colombia, la RNEC resalta mucho que los sistemas que implemente debe incluir mecanismos de autenticación y verificación electrónica para aumentar la confianza ciudadana y poder garantizar que los procesos son auditables, asegurando que la autenticación biométrica del elector es una herramienta muy importante para impedir la suplantación.
+
+El reconocimiento facial es una alternativa que garantiza que cada persona vote una sola vez, ya que analiza características únicas del rostro y se comprara con plantillas biométricas, que son registradas con antelación; Abd El-Rahiem et al. (2021) propone las plantillas cancelables, una buena opción para evitar alguna infiltración; y la RNEC presento una aplicación móvil que usa verificación de identidad basada en el reconocimiento facial, la cual permite que las entidades públicas o privadas puedan autenticar a las personas en tiempo real (Registraduría Nacional, Aplicativo Móvil, 2023). De igual forma, la registraduría confirmo que en las elecciones del 2026 utilizaran los sistemas de biometría facial y dactilar en más de 50.000 mesas de votación, con el objetivo de que la autenticidad del votante sea verificada y no existan suplantaciones (Agencia PI, 2024).
+
+La cedula digital colombiana es un avance a esa transformación digital. Desde el 2020, se comenzaron a gestionar este tipo de cedulas que incorporan la autenticación biométrica (rostro y huella), ofreciendo alta seguridad y reduciendo la falsificación o suplantación (Registraduría Nacional, Cedula Digital, 2025). Obteniendo beneficios como la protección de los datos personales, la facilidad de los tramites en línea y un avance para una introducción sutil al sistema de voto electrónico con énfasis en la autenticación facial, el cifrado de los datos y el control de acceso.
+
+El cifrado de datos es esencial en este tipo de sistemas, ya que se maneja todo tipo de información sensible, no solo datos personales sino también biométricos. Herramientas como el cifrado homomórfico resulta una técnica muy recomendable para estas situaciones, aunque su costo es elevado; en cuanto a la RNEC ha adoptado medidas de protección criptográfica en los sistemas de identificación, respaldando que la transmisión de toda la información se realiza bajo los protocolos de seguridad cifrados, reforzando la integridad de sus bases de datos.
+
+En el contexto colombiano, la aceptación ciudadana de un sistema de votación electrónico mediante reconocimiento facial es un factor determinante para el éxito o fracaso del desarrollo del sistema. Mas allá de los aspectos técnicos, se deben considerar todos los factores sociales, culturales, demográficos y económicos, se debe fomentar la participación ciudadana, brindando una información clara y de alta calidad, asegurando la transparencia y la legitimidad de los procesos electorales.
+
+Tecnologías como las plantillas biométricas, la autenticación biométrica, el reconocimiento facial y métodos de cifrado, conforman herramientas fundamentales para el desarrollo del sistema de voto electrónico. Sin embargo, debido a que la tecnología se encuentra en constante cambio, es posible que durante el proceso del desarrollo se empleen nuevas soluciones que ofrezcan mayor seguridad y eficiencia. En su totalidad, estos elementos conceden el desarrollo de un sistema de voto electrónico que sea seguro, confiable, confidencial y sobre todo auditable, que vaya acorde con los objetivos y avances que quiere lograr la Registraduría Nacional, sosteniendo los altos estándares de seguridad, innovación y calidad que ofrece la entidad para el fortalecimiento de la democracia en Colombia.
+
+## 2.3 Variables o categorías de la Investigación
+
+### 2.3.1 Sistemas de variables
+
+El sistema de variables permite identificar elementos que se van a medir, controlar y estudiar dentro del problema del sistema de votación electrónica. Se identifican indicadores propios de las variables los cuales permiten su medición o análisis. Con lo anterior proponemos las siguientes variables:
+
+- **Usabilidad:** Es la facilidad con la que el usuario final usa el sistema de votación electrónica.
+
+- **Seguridad de la base de datos:** Protección de los datos frente a accesos no autorizados.
+
+- **Eficacia de la autenticación biométrica:** Validación de identidad del votante mediante la cámara.
+
+- **Seguridad criptográfica:** Protección de los datos mediante ECC.
+
+- **Integridad del voto:** Garantía de los principios básicos del voto.
+
+- **Confianza del usuario:** Percepción del usuario sobre el sistema.
+
+### 2.3.2 Definición conceptual y de términos
+
+**Tabla 1.** _Operacionalización de variables._
+
+| Variable | Definición conceptual | Términos | Indicadores |
+|---|---|---|---|
+| Usabilidad | Facilidad de uso del sistema de votación electrónica | Facilidad de uso, accesibilidad | Tiempo de votación; Errores |
+| Seguridad de la base de datos | Protección de los datos frente a accesos no autorizados | Cifrado, control de acceso | Nivel de cifrado; Accesos fallidos |
+| Eficacia de la autenticación biométrica | Validación de identidad del votante | Precisión, tiempo de respuesta | Falsos positivos/negativos |
+| Seguridad criptográfica | Protección mediante ECC | Confidencialidad, integridad | Uso de claves; Verificación |
+| Integridad del voto | Garantía de principios básicos del voto | Consistencia de votos | Coincidencia voto-registro; Integridad |
+| Confianza del usuario | Percepción del usuario sobre el sistema | Seguridad percibida, facilidad | Nivel de seguridad |
+
+Fuente: Elaboración propia
+
+_Nota:_ La tabla presenta la operacionalización de las variables consideradas en la investigación, donde se detalla la definición, los términos que se relacionan y los indicadores que se usaran para su medición.
+
+## 2.4 Bases legales de la Investigación
+
+El proyecto de investigación sobre el voto electrónico con reconocimiento facial se sustenta en la legislación colombiana con los procesos electorales, la protección de los datos personales, la seguridad y el uso de las tecnologías. En este marco legal se exponen las principales normas y leyes que se incluyen en el desarrollo del proyecto.
+
+La legislación colombiana ha establecido bases para permitir el uso del voto electrónico y mecanismos de verificación biométrica. La Ley 1475 de 2011, en su artículo 39, regula la estructura y el desempeño de los procesos electorales en Colombia concediendo la posibilidad de modernizar los sistemas de votación por medio de herramientas tecnológicas, siempre y cuando se asegure que los procesos son auditables y exista una protección al voto.
+
+Para el uso de la biometría facial, es fundamental la protección de los datos personales, la Ley 1581 de 2012 establece en qué condiciones las entidades públicas y privadas pueden utilizar, almacenar o tratar los datos personales, ya que los datos biométricos son considerados sensibles, el tratamiento de estos debe ser autorizado únicamente por la persona titular y asegurar medidas de protección para evitar filtraciones.
+
+La Ley 527 de 1999, junto con el Decreto de 2364 de 2012, establecen y regulan el uso de firmas digitales e identificación electrónica, pues deben verificar la autenticidad y el no repudio de las acciones que se realicen electrónicamente, son elementos que se pueden integrar en la autenticación facial para la verificación del votante.
+
+Una norma de gran importancia en este proyecto es la Ley Estatutaria 1266 de 2008, conocida como la ley de Habeas Data, definida como la regulación al derecho de que toda persona conozca, actualice y rectifique la información que se tenga sobre ella en bases de datos o archivos, con esto se garantiza que el ciudadano pueda ejercer su derecho al voto haciendo uso de su información biométrica y tenga control sobre los registros que se generen en el sistema.
+
+Así mismo, el Articulo 40 de la Constitución Política de Colombia, establece que todo ciudadano tiene como derecho fundamental a participar en el control, ejercicio y conformación del poder político, esencialmente por medio del voto; además, el Articulo 258 constituye que el voto debe ser libre, secreto y personal, asegurando la transparencia en los procesos electorales; estos artículos funcionan como fundamentos para poder implementar tecnologías en las participaciones democráticas, respetando los principios de seguridad y privacidad, prevaleciendo los derechos de los ciudadanos.
+
+Para finalizar, la Ley 1955 de 2019 siendo el Plan Nacional de Desarrollo promueve la transformación del Estado tradicional a un Estado digital, incentivando el uso de las tecnologías avanzadas para poder modernizar servicios públicos, incluidos los procesos electorales.
+
+Del mismo modo, la incorporación de avances tecnológicos, los marcos normativos vigentes y la confianza ciudadana permite tener una visión solida del proyecto para lograr una ruta sólida sobre la implementación al sistema de voto electrónico con reconocimiento facial, de acuerdo con los principios legales y la protección de datos en Colombia.
+
+# Capítulo III: Marco metodológico
+
+En este capítulo se hablará de la metodología de desarrollo que se usará para diseñar, implementar y probar el prototipo de votación electrónica, junto con la criptografía de curva elíptica (ECC) y reconocimiento biométrico, también se hablará de cómo se piensa proteger los principios fundamentales del voto mediante el cifrado de los votos y los datos biométricos, otros aspectos a tratar son el enfoque mixto de la investigación en el que se usaran tanto métodos cuantitativos para medir el rendimiento como métodos cualitativos para conocer las opiniones de los votantes.
+
+Este capítulo continuo con la delimitación de la población con la que se probará el aplicativo, así mismo, como se va a seleccionar, informándoles de antemano como se va a procesar sus datos, con que fines y cumpliendo con la normativa de Habeas Data, también se explicará cómo se hará la recolecta de la información sobre las opiniones de los votantes y sus datos biométricos y, por último, como se analizarán los datos recolectados, con que herramientas y que técnicas se van a utilizar.
+
+## 3.1 Tipo de Investigación
+
+Esta investigación se considera de tipo aplicada, puesto que se busca resolver un problema en el contexto colombiano para mejorar los procesos de votación, concretamente con el diseño de un prototipo funcional de un sistema de votación electrónica que garantice los principios básicos del voto mediante el uso de herramientas tecnológicas como la criptografía de curva elíptica y la biometría. Según el investigador Hernández Sampieri et al. (2014), la investigación aplicada está enfocada a solucionar problemas específicos y de forma práctica usando el conocimiento, lo cual se puede evidenciar en el desarrollo del proyecto.
+
+A su vez, la investigación tiene un enfoque descriptivo, ya que se pretende evaluar y analizar el comportamiento del sistema de votación electrónica bajo un entorno controlado, donde se pueden especificar variables que se desean cubrir como la seguridad, la autenticación de los votantes, la integridad del voto y la usabilidad del sistema, permitiendo medir con mayor precisión e inicialmente sin la manipulación de las condiciones de entorno.
+
+De igual manera, se encuentra un elemento experimental, porque al diseñar e implementar un prototipo funcional que será evaluado en una muestra especifica de usuarios se pueden observar los efectos en el sistema, esto con el fin de analizar el comportamiento del sistema con respecto a diferentes escenarios antes de aplicar alguna modificación y después medir los efectos que se derivaron de la alteración. De acuerdo con Tamayo y Tamayo (2001), una investigación experimental requiere que las variables sean manipuladas bajo ciertas condiciones controladas para evaluar los efectos, lo cual se puede reflejar en las pruebas piloto que se realiza al sistema con usuarios reales.
+
+Adicionalmente, el proyecto tendrá un alcance exploratorio, debido a que las investigaciones e implementaciones del voto electrónico son pocas y en especial en relación con la integración del cifrado de curva elíptica y biometría, al menos en el contexto colombiano, por lo anterior, este proyecto será importante y según Sampieri, los estudios exploratorios se pueden considerar como un paso inicial para generar bases a futuros proyectos que han sido poco investigados, siendo así, con la investigación se puede llegar a identificar factores técnicos y sociales en Colombia.
+
+En relación con el enfoque metodológico, el proyecto adoptará un enfoque mixto, ya que se utilizarán técnicas cuantitativas y cualitativas, uno para la validación técnica como la medición del prototipo, los tiempos de respuesta y el éxito en la autenticación de los votantes y el otro para conocer las opiniones y perspectivas de los votantes sobre el uso, la transparencia y la confianza que les proporciona el sistema.
+
+En síntesis, el proyecto es una investigación aplicada de tipo descriptiva – experimental con alcance exploratorio y un enfoque metodológico mixto, con las técnicas establecidas como pruebas de funcionamiento, pruebas de usuario, recolección de percepciones de los votantes mediante instrumentos como encuestas y observación, se puede llegar a validar el cumplimiento de los principios básicos del voto electrónico.
+
+## 3.2 Diseño de Investigación
+
+El diseño de la investigación se puede clasificar en un diseño preexperimental de tipo transversal, a partir del enfoque metodológico mixto, lo que permite estructurar de una manera organizada el proceso de investigación y así se garantiza que los resultados obtenidos sean confiables y exista coherencia con los objetivos planteados.
+
+En coherencia con los objetivos y variables definidas en la investigación, se plantea la siguiente hipótesis: Si se desarrolla un sistema web de votación electrónica que implemente medidas de seguridad como el cifrado de curva elíptica y la autenticación biométrica, entonces se garantizarán los principios básicos del voto, como lo son la legitimidad, la elegibilidad, la verificabilidad y la confidencialidad, en comparación con los métodos tradicionales de votación.
+
+Tal como señala Hernández Sampieri et al. (2014), el diseño de investigación es un plan que se desarrolla para conseguir la información necesaria que responde la pregunta de investigación planteada. El diseño adaptado a esta investigación permite evaluar el comportamiento del sistema basándose en la implementación bajo el entorno controlado.
+
+El estudio es preexperimental, ya que en este caso se estudia con una única muestra de votantes y no se realizará la conformación de grupos independientes o de comparación. El tratamiento corresponde a la implementación del prototipo del sistema de votación electrónica, que será aplicado en 100 personas donde se puede observar la seguridad, la integridad del voto, la autenticación de los usuarios y la usabilidad del sistema.
+
+Igualmente, la investigación es de tipo transversal, debido a que la recolección de datos se realizara en un único momento del tiempo concretamente durante las pruebas piloto del sistema, lo que permite analizar el comportamiento de las variables planteadas en un contexto especifico sin que exista la necesidad de realizar el seguimiento por un lapso de tiempo indefinido.
+
+Las fases metodológicas que se tienen planteadas para enfocar el desarrollo del proyecto son: (1) realizar el diseño y el desarrollo del prototipo funcional del sistema web de votación electrónica usando como mecanismo de seguridad el cifrado de encriptación de curva elíptica y la autenticación biométrica; (2) ejecutar la implementación del sistema bajo un entorno de pruebas controlado, evaluando falencias y posibles mejoras: (3) llevar a cabo pruebas funcionales con usuarios reales para poder evaluar el desempeño del sistema en relación con la seguridad, la integridad y la usabilidad; y (4) finalmente, se analizan los datos que se recopilaron con el fin de darle respuesta al planteamiento del problema y realizar la sustentación respectiva al proyecto de investigación.
+
+En congruencia con el enfoque metodológico mixto, el diseño planteado conforma técnicas de recopilación y análisis de los datos de forma cuantitativa y cualitativa. Se implementan indicadores cuantitativos como los tiempos de respuesta, el rendimiento del sistema y las tasas de autenticación biométrica. Y, por otro lado, se usan instrumentos cualitativos como encuestas para evaluar la confianza que genera el sistema hacia los usuarios y la observación para poder visualizar la facilidad del uso del sistema.
+
+Por lo tanto, el diseño de investigación que se adaptó facilita la evaluación en el funcionamiento técnico y de usabilidad del sistema, así como su aceptación y confianza por parte de los votantes, creando una conexión coherente entre los objetivos planteados, las variables y los resultados esperados.
+
+## 3.3 Población
+
+La población que será estudiada en este proyecto está conformada por personas que van a participar en el testeo del prototipo funcional desarrollado, haciendo de usuarios del sistema proporcionando información importante para evaluar su funcionalidad, usabilidad y eficiencia, Esta población será conformada aproximadamente por 100 personas que serán seleccionadas mediante muestreo por conveniencia, teniendo dentro de los integrantes a familiares, conocidos y personas cercanas que acepten participar voluntariamente en el estudio.
+
+Ahora, para escoger a los participantes se tendrán en cuenta ciertos criterios de inclusión que se deberán cumplir para poder participar en el prototipo, tales como ser mayor de edad, aceptar el uso de sus datos únicamente con fines académicos y firmar el consentimiento informado, estos criterios están con el fin de cumplir la normativa vigente sobre protección de datos personales y Habeas Data. Asimismo, existen criterios de exclusión como ser menor de edad, si la persona no desea participar voluntariamente o si la persona no autoriza el tratamiento de sus datos personales.
+
+La elección de la población se hizo de esta manera con el propósito de contar con un grupo grande que pruebe el prototipo y que esté de acuerdo para evaluar el comportamiento del prototipo en un ambiente simulado cercano a lo que pasaría en la realidad, lo que facilita la recolección de datos, el análisis de los resultados y la validación del sistema. Se escogió que el muestreo sea no probabilístico ya que, según explica Marc Gisbert Juárez (2025), una de las ventajas de usar este tipo de muestreo es que es muy útil para hacer investigaciones de carácter cualitativo o exploratorio, lo cual se cumple en este contexto de esta investigación.
+
+## 3.4 Técnicas e instrumentos de recolección de datos
+
+Para este proyecto se hará uso de diferentes técnicas de recolección que ayudarán a obtener información tanto cuantitativa y cualitativa que va a permitir evaluar el funcionamiento, la eficiencia y la aceptación del prototipo.
+
+Primero, se va a hacer uso de la encuesta, cuyo instrumento principal será el cuestionario estructurado que, según Narvaez (2023), este es un documento usado para recopilar datos de los encuestados con preguntas estandarizadas con un marco predeterminado para preguntas precisas. Esto va a ser aplicado a los a los participantes del experimento con el fin de recopilar la información sobre su experiencia al usar el prototipo, sus opiniones, sugerencias y diferentes puntos de vista que permitirá comparar sus perspectivas antes y después de su uso.
+
+También se hará uso de la observación directa para complementar, esto con el propósito de analizar el comportamiento de los usuarios al momento de usar el prototipo, que partes del software se les dificulta usar, que posibles errores al momento de ejecución pueden ocurrir y el tiempo de respuesta. “La observación directa es importante en las investigaciones porque ofrece una perspectiva auténtica y objetiva de cómo las personas actúan en su entorno natural, sin la influencia de cuestionarios o entrevistas” (Escarcega, 2025).
+
+Por último, para la recolección de los datos biométricos su va a utilizar la cámara web del dispositivo, con esta se va a capturar las características faciales de los usuarios para después almacenarlos en la base de datos. Los datos recopilados solo van a ser usados para probar la autenticación dentro del prototipo, también, se aplicarán pruebas técnicas para medir la tasa de acierto en el reconocimiento facial, el tiempo de respuesta y la fiabilidad del sistema.
+
+Estas técnicas e instrumentos se justifican en la necesidad de obtener información integral que permite evaluar la percepción de los usuarios y el desempeño del sistema en entornos simulados, de esta manera se garantiza un análisis más completo del problema de investigación y se facilita la validación del prototipo en un entorno controlado.
+
+## 3.5 Técnicas de procesamiento y análisis de los datos
+
+Para el procesamiento de los datos del prototipo de votación electrónica, se utilizarán técnicas de validación, cifrado y autenticación, enfocándose en la garantía de la seguridad del votante, integridad del voto en concordancia de los principios básicos del voto mencionados anteriormente.
+
+El sistema de votación electrónica procesara la autenticidad de los votantes mediante la plantilla biométrica previamente registrada. Esto permitirá verificar los votantes y que puedan realizar su voto respectivo. Esta información y otra relacionada con el votante se cifrará mediante la criptografía de curva elíptica (ECC), para así garantizar la seguridad de los datos sensibles del votante y verificabilidad del voto.
+
+Con esto se verificará la funcionalidad del sistema mediante variables como: Exactitud de autenticación, tiempo de respuesta, integridad de los votos, disponibilidad y estabilidad del sistema, etc. Esto se detallará en el plan de calidad para el prototipo siendo los resultados evaluados mediante métricas de desempeño y estándares definidos como las normas ISO.
+
+# Capítulo IV: Análisis y discusión de resultados
+
+## 4.1 Presentación de los resultados
+
+_(Sección sin contenido en el documento original.)_
+
+## 4.2 Análisis e interpretación de los resultados
+
+_(Sección sin contenido en el documento original.)_
+
+## 4.3 Discusión
+
+_(Sección sin contenido en el documento original.)_
+
+## 4.4 Conclusiones y recomendaciones
+
+_(Sección sin contenido en el documento original.)_
+
+# Capítulo V: Referencias
+
+- Abdullahi, S. M., Sun, S., Wang, B., Wei, N., & Wang, H. (2024). Biometric template attacks and recent protection mechanisms: A survey. Information Fusion, 103, 102144. https://doi.org/10.1016/j.inffus.2023.102144
+- Agencia de Periodismo Investigativo. (2 de febrero de 2025). Registraduría confirma uso de biometría facial en elecciones de 2026. https://www.agenciapi.co/noticia/regiones/registraduria-confirma-uso-de-biometriafacial-en-elecciones-de-2026
+- Constitución Política de Colombia [Const]. Art. 40 y 258. 7 de julio de 1991 (Colombia).
+- Decreto 2364 de 2012. Por el cual se reglamenta la utilización de firmas electrónicas y digitales en Colombia. 7 de noviembre de 2012. D.O. No. 48578.
+- Druliac, H., Bardsley, M., Riches, C., Dunn, C., Harrison, L., Roy, B., & Hao, F. (2024). On the feasibility of E2E verifiable online voting – A case study from Durga Puja trial. Journal of Information Security and Applications, 81, 103719. https://doi.org/10.1016/j.jisa.2024.103719
+- Ehin, P., Solvak, M., & Willemson, J. (2022). Internet voting in Estonia 2005–2019: Evidence from eleven elections. Government Information Quarterly, 39(4), 101718. https://doi.org/10.1016/j.giq.2022.101718
+- El-Rahiem, B. A., Amin, M., Sedik, A., Samie, F. E. A. E., & Iliyasu, A. M. (2022). An efficient multi-biometric cancellable biometric scheme based on deep fusion and deep dream. Journal of Ambient Intelligence and Humanized Computing, 13(4), 2177–2189. https://doi.org/10.1007/s12652-021-03513-1
+- Garzón Imbeth, C. (2021). El voto obligatorio en Colombia: más que un derecho, un deber ciudadano. Universidad de los Andes. https://hdl.handle.net/1992/53872
+- Germann, M. (2017). Internet voting and turnout: Evidence from Switzerland. Electoral Studies, 50, 83-97. https://doi.org/10.1016/j.electstud.2017.04.006
+- Hernández Mariño, T. E. (2025). Voto electrónico en Colombia: lecciones del derecho comparado para una implementación efectiva [Tesis de maestría, Universidad La Gran Colombia]. Repositorio Institucional UGC. https://repository.ugc.edu.co/server/api/core/bitstreams/1a71892f-29ae-4c52-9df3d7b76d3bd999/content
+- Hernández Sampieri, R., Fernández Collado, C., & Baptista Lucio, P. (2014). Metodología de la investigación (6.ª ed.). McGraw-Hill. https://apiperiodico.jalisco.gob.mx/api/sites/periodicooficial.jalisco.gob.mx/files/metodologia_de_la_investigacion_-_roberto_hernandez_sampieri.pdf
+- Hossain Faruk, M. J., Alam, F., Islam, M., et al. (2024). Transforming online voting: A novel system utilizing blockchain and biometric verification for enhanced security, privacy, and transparency. Cluster Computing, 27, 4015–4034. https://doi.org/10.1007/s10586-023-04261-x
+- Investigación en Ciberseguridad. (2021). Jornadas Nacionales de Investigación en Ciberseguridad (Vol. 34) [PDF]. Ediciones de la Universidad de Castilla-La Mancha. https://hdl.handle.net/10578/28597
+- Kronick, D. (2024). Sobre la validez del recuento de votos publicado por la oposición venezolana. https://dorothykronick.com/28J_Spanish.pdf
+- Kubuga, K. K., Laar, D. S., Ayoung, D. A., & Asaamoning, G. (2023). Electronic voting perceptions in Ghana - In search of a critical mass. UDS International Journal of Development, 10(2), 1023–1034. https://doi.org/10.47740/714.UDSIJD6i
+- Ley 1266 de 2008. Por la cual se dictan disposiciones generales del Habeas Data y se regula el manejo de la información contenida en bases de datos personales. 31 de diciembre de 2008. D.O. No. 47179.
+- Ley 1475 de 2011. Por la cual se adoptan reglas de organización y funcionamiento de los partidos y movimientos políticos. 14 de julio de 2011. D.O. No. 48190.
+- Ley 1581 de 2012. Por la cual se dictan disposiciones generales para la protección de datos personales. 17 de octubre de 2012. D.O. No. 48587.
+- Ley 1955 de 2019. Por la cual se expide el Plan Nacional de Desarrollo 2018–2022. 25 de mayo de 2019. D.O. No. 50964.
+- Ley 527 de 1999. Por medio de la cual se define y reglamenta el acceso y uso de los mensajes de datos, del comercio electrónico y de las firmas digitales. 18 de agosto de 1999. D.O. No. 43664.
+- M. Khasawneh, M., Malkawi, M., Al-Jarrah, O., Barakat, L., Hayajneh, T. S., & Ebaid, M. S. (2008). A biometric-secure e-voting system for election processes. En Proceedings of the 5th International Symposium on Mechatronics and Its Applications (pp. 1–8). IEEE. https://doi.org/10.1109/ISMA.2008.4648818
+- Mahmood, W. A., Waleed, J., Abbas, A. R., Alaskar, H., Altulyan, M., & Hussain, A. J. (2024). Intelligent gesture-enhanced blockchain voting: A new era of secure and accessible e-voting. IEEE Access, 12, 144055–144068. https://doi.org/10.1109/ACCESS.2024.3468338
+- Pumarejo Sánchez, M. E. (2021). Hacia la automatización de procesos electorales. Voto electrónico en Colombia: un estudio de factibilidad de la implementación (Maestría en Gobierno del Territorio y Gestión Pública). Pontificia Universidad Javeriana. https://apidspace.javeriana.edu.co/server/api/core/bitstreams/8ff4eb97-648b-4876-8ebceb5ee3f03730/content
+- Quiroga, Y. L. P. (s/f). _El voto electrónico ¿solución al abstencionismo electoral en Colombia?_ Edu.co. Recuperado el 6 de abril de 2026, de https://repository.unilibre.edu.co/bitstream/handle/10901/24664/Articulo_Yulieth_Poveda.pdf?sequence=1
+- Registraduría Nacional del Estado Civil. (16 de mayo de 2024). Registraduría Nacional desarrolla aplicativo móvil de verificación de identidad. Gov.co. https://www.registraduria.gov.co/Registraduria-Nacional-desarrolla-aplicativo-movil-deverificacion-de-identidad.html
+- Registraduría Nacional del Estado Civil. (18 de marzo de 2023). Avanzan las pruebas piloto de aplicación de la tecnología de reconocimiento facial. https://www.registraduria.gov.co/Avanzan-las-pruebas-piloto-de-aplicacion-de-la-tecnologia-de-reconocimiento.html
+- Registraduría Nacional del Estado Civil. (2 de febrero de 2025). Biometría facial será usada en elecciones de 2026. https://www.registraduria.gov.co/Biometria-facial-sera-usada-en-elecciones-de-2026.html
+- Registraduría Nacional del Estado Civil. (7 de octubre de 2025). Cédula de ciudadanía. https://www.registraduria.gov.co/-Cedula-de-ciudadania-.html
+- Registraduría Nacional del Estado Civil. (7 de octubre de 2025). Nuevas tecnologías. https://www.registraduria.gov.co/-Nuevas-Tecnologias-180-.html
+- Registraduría Nacional del Estado Civil. (7 de octubre de 2025). Qué es un sistema de voto electrónico. https://www.registraduria.gov.co/Que-es-un-sistema-de-voto-electronico.html
+- Reyes, H. P. (2020). Mecanismos de participación ciudadana electrónica en Colombia (2010–2020) [Tesis de maestría, Pontificia Universidad Javeriana]. Repositorio Institucional – Pontificia Universidad Javeriana. http://hdl.handle.net/10554/51799
+- Tamayo y Tamayo, M. (2001). El proceso de la investigación científica (4.ª ed.). Limusa. https://books.google.com.co/books?id=BhymmEqkkJwC
+- Tejedor-Romero, M., Orden, D., Marsa-Maestre, I., Junquera-Sanchez, J. y Gimenez-Guzman, J. M. (2021). Distributed Remote E-Voting System Based on Shamir’s Secret Sharing Scheme. Electronics, 10(24), 3075. https://doi.org/10.3390/electronics10243075
+- Turnbull-Dugarte, S. J., & Devine, D. (2023). Support for digitising the ballot box: A systematic review of i-voting pilots and a conjoint experiment. Electoral Studies, 86, 102679. https://doi.org/10.1016/j.electstud.2023.102679
+- Vakhshiteh, F., Nickabadi, A., & Ramachandra, R. (2021). Adversarial attacks against face recognition: A comprehensive study. IEEE Access, 9, 92735–92756. https://doi.org/10.48550/arXiv.2007.11709
+- Vista de decisiones electorales inconscientes: sesgos que determinan el voto en Colombia. (s. f.). Cuadernos de Economía. https://revistas.unal.edu.co/index.php/ceconomia/article/view/91266/85341
+- Vista de participación desigual, representación desigual: ¿cómo afecta la pobreza a la participación electoral en sistemas con voto voluntario? Los casos de Chile y Colombia. (s. f.). Revista de Derecho, Universidad Pontificia Bolivariana. https://revistas.upb.edu.co/index.php/derecho/article/view/7063/6577
+- Yang, W., Wang, S., Cui, H., Tang, Z., & Li, Y. (2023). A review of homomorphic encryption for privacy-preserving biometrics. Sensors, 23(7), 3566. https://doi.org/10.3390/s23073566
+- Zhang, B., Li, Z., & Willemson, J. (2021). UC modelling and security analysis of the Estonian IVXV internet voting system. arXiv preprint arXiv:2109.01994 https://doi.org/10.48550/arXiv.2109.01994
+- Ziegler Acemyan, C., Kortum, P., & Oswald, F. L. (2022). The Trust in Voting Systems (TVS) Measure. International Journal of Technology and Human Interaction, 18(1). https://doi.org/10.4018/IJTHI.293196
+
+# Anexo A: Requerimientos funcionales y no funcionales
+
+Cada requerimiento aparece en el documento original como una tabla individual de especificación (Tablas 2 a 56), con fuente "Elaboración propia". Aquí se consolidan en dos tablas.
+
+## Requerimientos funcionales (RQF01–RQF32, Tablas 2–33)
+
+| ID | Nombre | Tipo | Prioridad | Descripción |
+|---|---|---|---|---|
+| RQF01 | Registro de votantes | Registro | Alta | El sistema permitirá registrar a los votantes utilizando su documento de identidad y sus datos básicos en el sistema para autenticar su veracidad. |
+| RQF02 | Plantilla biométrica | Almacenamiento | Alta | El sistema permitirá almacenar la plantilla biométrica de cada usuario para realizar la validación de identidad. |
+| RQF03 | Verificación biométrica | Veracidad | Alta | El sistema verificara la identidad del usuario mediante la autenticación biométrica, para así asegurar que son personas las que está realizando el voto. |
+| RQF04 | Comprobación de edad | Valido | Alta | El sistema verificara que el votante cuente con los requisitos para realizar dicha acción, de lo contrario no permitirá que realice el voto. |
+| RQF05 | Unicidad | Duplicidad | Alta | El sistema evitar que una persona pueda votar más de una vez en una votación en específico evitando que los votos se dupliquen. |
+| RQF06 | Nuevas votaciones | Control | Media | El sistema debe permitir poder crear nuevos procesos de votación dentro del sistema. |
+| RQF07 | Fecha y hora | Control | Media | El sistema debe permitir establecer fecha y hora de inicio y finalización de las elecciones. |
+| RQF08 | Registro de votantes | Control | Alta | El sistema debe permitir que el administrador pueda agregar información básica e imágenes de los candidatos para el momento del voto. |
+| RQF09 | Lista de candidatos | Control | Alta | El sistema permitirá visualizar la lista de candidatos antes de emitir su voto. |
+| RQF10 | Selección de candidatos | Control | Alta | El sistema debe permitir seleccionar únicamente un candidato durante la votación. |
+| RQF11 | Confirmación | Control | Alta | El sistema debe validar la elección de votación del votante antes de enviar el voto. |
+| RQF12 | Criptografía | Regla de negocio | Alta | El sistema debe proteger los datos de los votantes mediante criptografía de curva elíptica. |
+| RQF13 | Datos guardados | Guardado | Alta | El sistema debe tener almacenar los votos de manera cifrada en la base de datos para protegerlos. |
+| RQF14 | Votos | Control | Alta | El sistema no puede modificar ni eliminar un voto cuando ya es emitido por el votante. |
+| RQF15 | Identificación de votos | Identificación | Alta | El sistema debe generar un identificador único para cada uno de los votos emitidos. |
+| RQF16 | Registro de voto | Control | Alta | El sistema debe registrar la fecha y hora en la que se realizó cada votación. |
+| RQF17 | Cuentas de encargados | Control | Alta | El sistema debe permitir administrar las cuentas del equipo electoral, tanto permisos como procesos de auditoria. |
+| RQF18 | Actualización de candidatos | Actualización | Alta | El sistema debe permitir a los administradores actualizar la información de los candidatos registrados. |
+| RQF19 | Cierre | Control | Alta | El sistema debe permitir cerrar los procesos electorales finalizados y de ser requeridos eliminarlos del historial mas no de la base de datos. |
+| RQF20 | Conteo de votos | Conteo | Alta | El sistema debe permitir que al finalizar la votación el sistema debe realizar automáticamente el conteo de votos. |
+| RQF21 | Resultado de conteo | Resultados | Alta | El sistema debe permitir que los usuarios puedan ver el conteo de los votos y la diferencia entre candidatos. |
+| RQF22 | Reportes | Auditoria | Alta | El sistema debe generar reportes con los resultados obtenidos en las votaciones. |
+| RQF23 | Documentos | Documentación | Baja | El sistema debe permitir descargar los resultados con los resultados matemáticos de los resultados en formato PDF |
+| RQF24 | Historial | Historial | Alta | El sistema debe contar con un historial de las elecciones realizadas en el programa. |
+| RQF25 | Auditoría | Control | Alta | El sistema mantendrá registros de auditoría sobre las elecciones realizadas por los administradores. |
+| RQF26 | Cierre automático | Cierre | Alta | Cuando finalice el tiempo establecido por una votación debe cerrarse automáticamente para no recibir más votaciones. |
+| RQF27 | Restricción | Control | Alta | El sistema debe restringir el acceso a un votante cuando no pueda verificar su identidad. |
+| RQF28 | Vista de confirmación | Control | Media | El sistema debe mostrar un mensaje de confirmación cuando el voto se haya realizado y guardado. |
+| RQF29 | Estadística de votos | Estadística | Alta | El sistema debe mostrar estadísticas generales sóbrela participación de los votantes. |
+| RQF30 | Seguridad de datos | Seguridad | Alta | El sistema debe permitir realizar copias de seguridad para los datos. |
+| RQF31 | Rollback de datos | Rollback | Alta | El administrador podrá restaurar información respaldada en un tiempo definido. |
+| RQF32 | Funcionamiento humano | Supervisión | Alta | El sistema permitirá supervisar el funcionamiento de la plataforma durante la jornada electoral. |
+
+## Requerimientos no funcionales (RQNF01–RQNF23, Tablas 34–56)
+
+| ID | Nombre | Tipo | Prioridad | Descripción |
+|---|---|---|---|---|
+| RQNF01 | Confidencialidad | Calidad | Media | El sistema debe proteger la confidencialidad de los datos de los votantes. |
+| RQNF02 | Tiempo de respuesta | Calidad | Media | El sistema debe responder en menos de 5 segundos en las operaciones principales. |
+| RQNF03 | Disponibilidad | Calidad | Alta | El sistema debe estar disponible durante toda la jornada electoral sin interrupciones. |
+| RQNF04 | Compatibilidad con plataformas | Compatibilidad | Media | La plataforma deberá ser compatible con los navegadores más utilizados actualmente, adaptándose a cualquier dispositivo. |
+| RQNF05 | Interfaz | Usabilidad | Media | El sistema debe ser intuitivo y sencillo para facilitar su uso para cualquier clase de usuario. |
+| RQNF06 | Integridad de los datos | Integridad | Media | El sistema debe garantizar la integridad de los votos registrados. |
+| RQNF07 | Confidencialidad biométrica | Calidad | Media | El sistema debe proteger la información biométrica de los usuarios evitando accesos no autorizados. |
+| RQNF08 | auditoria de acciones | Auditoria | Media | La plataforma deberá mantener un registro de auditoria de las acciones realizadas por los administradores |
+| RQNF09 | Concurrencia de usuarios | Calidad | Alta | El sistema debe ser capaz de soportar múltiples usuarios conectados de manera simultanea |
+| RQNF10 | Recuperación de datos | Tolerancia a fallos | Media | La plataforma deberá permitir la recuperación de datos en caso de presentar fallos o perdidas de conexión. |
+| RQNF11 | Funcionamiento continuo | Calidad | Media | El sistema deberá mantener estabilidad y funcionamiento continuo durante las votaciones. |
+| RQNF12 | Desarrollo de aplicación | Desarrollo | Media | El desarrollo de la aplicación deberá seguir buenas prácticas de seguridad informática. |
+| RQNF13 | Escalabilidad | Desarrollo | Media | El sistema deberá ser escalable para permitir futuras mejoras o nuevas funcionalidades. |
+| RQNF14 | Consumo de recursos | Consumo | Alta | La plataforma deberá minimizar el consumo de recursos del servidor durante su ejecución. |
+| RQNF15 | Voto anónimo | Negocio | Alta | El sistema deberá garantizar que cada voto permanezca anónimo |
+| RQNF16 | Recuperación de datos | Tolerancia a fallos | Media | El sistema deberá permitir una navegación clara y organizada entre sus módulos. |
+| RQNF17 | Errores en votación | Errores | Media | La plataforma deberá reducir al mínimo la posibilidad de errores durante el proceso de votación |
+| RQNF18 | Validación de datos | Validación | Media | El sistema deberá contar con mecanismo de validación para evitar inconsistencias en los datos ingresados. |
+| RQNF19 | Desarrollo web | Desarrollo | Media | La aplicación deberá ser desarrollada utilizando tecnologías compatibles con entornos web modernos y más utilizados. |
+| RQNF20 | Mantenimiento | Tolerancia a fallos | Media | El sistema deberá permitir mantenimiento y actualización sin afectar significativamente su funcionamiento. |
+| RQNF21 | Logs del sistema | Registros | Media | La plataforma deberá registrar automáticamente errores o fallos ocurridos durante la ejecución. |
+| RQNF22 | Resultados verídicos | Negocio | Media | El sistema deberá asegurar que los resultados electorales no pueden ser alterados. |
+| RQNF23 | Uso de experiencia comprensible | Usabilidad | Media | El sistema deberá ofrecer una experiencia de uso comprensible para usuarios con conocimientos básicos en tecnología |
+
+# Anexo B: Diagramas UML
+
+> Los diagramas del documento original son imágenes. A continuación se transcribe su contenido como texto estructurado; la "Nota" de cada figura corresponde al texto original del trabajo.
+
+## Casos de uso
+
+### Figura 1. Diagrama de Casos de Uso General del Sistema Web de Votación Electrónica
+
+**Transcripción del diagrama** (sistema: "Sistema web de votación electrónica"):
+
+- **Actor Votante:** Gestionar votación; Consultar resultados; Validar identidad; Consultar candidatos.
+- **Actor Administrador:** Gestionar procesos electorales; Generar reportes; Gestionar candidatos; Gestionar respaldos; Gestionar auditoría; Supervisar funcionamiento; Consultar resultados.
+- **Actor Usuario autorizado:** Consultar resultados.
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama representa los limites general que tiene el sistema, los óvalos representan las funcionalidades principales y las figuras de líneas son los actores del sistema, junto a su vinculación directa con líneas indicando una participación directa con el caso de uso.
+
+### Figura 2. Casos de Uso para el Módulo de Gestión de Votantes y Autenticación
+
+**Transcripción del diagrama** (módulo: "Gestión de votantes y autenticación"; actor: Votante):
+
+- **Iniciar autenticación** → incluye: Verificar requisitos de edad; Verificar unicidad del voto; Verificar identidad; Restringir acceso.
+- **Registrar votante** → incluye: Almacenar plantilla biométrica.
+
+_Fuente: Elaboración propia._
+_Nota:_ Las flechas con las etiquetas <<include>> indican que la relación es de inclusión obligatoria, es decir, su caso de uso origen requiere obligatoriamente la ejecución del caso de uso al que se está apuntando para completarse de manera exitosa.
+
+### Figura 3. Casos de Uso para el Módulo de Gestión Electoral y Candidatos
+
+**Transcripción del diagrama** (módulo: "Gestión Electoral y candidatos"; actor: Administrador):
+
+- **Crear proceso electoral** → incluye: Configurar fecha y hora.
+- **Cerrar proceso electoral.**
+- **Gestionar candidatos** → incluye: Registrar candidato; Actualizar candidato.
+- **Gestionar cuentas del equipo electoral.**
+
+_Fuente: Elaboración propia._
+_Nota:_ Este diagrama detalla únicamente las operaciones exclusivas del actor "Administrador" dentro de la gestión electoral, las relaciones de <<include>> detallan los subprocesos que son necesarios para la creación de los procesos y la gestión de los candidatos.
+
+### Figura 4. Casos de Uso Detallados para el Proceso de Votación del Votante
+
+**Transcripción del diagrama** (módulo: "Proceso de Votación"; actor: Votante):
+
+- **Visualizar candidatos.**
+- **Emitir voto** → incluye: Seleccionar candidato; Almacenar voto (que a su vez lleva a Cifrar voto); Confirmar voto; Mostrar confirmación; Registrar fecha y hora.
+- **Verificar voto único** → relacionado con Emitir voto.
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama describe el acto de votación, se usan flechas discontinuas (<<include>>) indicando los pasos obligatorios que se deben realizar al ejecutar la acción principal de "Emitir voto".
+
+### Figura 5. Casos de Uso para el Módulo de Visualización de Resultados y Reportes
+
+**Transcripción del diagrama** (módulo: "Resultados y Reportes"):
+
+- **Actor Votante:** Consultar resultados → incluye: Consultar estadísticas; Consultar diferencia; Visualizar conteo.
+- **Actor Administrador:** Descargar resultados; Generar reportes (→ incluye Consultar resultados); Consultar historial.
+
+_Fuente: Elaboración propia._
+_Nota:_ Se observa la interacción que existe entre los actores en el proceso de resultados y reportes, se observa que la flecha discontinua señala que la consulta de los resultados finales contiene de forma propia la visualización de las estadísticas graficas del proceso de votación.
+
+### Figura 6. Casos de Uso para el Módulo de Seguridad, Auditoría y Respaldo Técnico
+
+**Transcripción del diagrama** (módulo: "Seguridad, Auditoría y Respaldo"):
+
+- **Actor Administrador:** Consultar registros de auditoría; Gestionar respaldos (→ incluye: Realizar copia; Restaurar información); Gestionar cierre atomático.
+- **Actor Supervisor:** Supervisar funcionamiento de la plataforma.
+
+_Fuente: Elaboración propia._
+_Nota:_ En el diagrama se definen las interacciones de soporte técnico y mantenimiento de la plataforma, el actor llamado "Sistema" se asocia de forma automatizada con el registro de actividades o logs de auditorías.
+
+## Diagrama de Despliegue
+
+### Figura 7. Diagrama de Despliegue de la Infraestructura Tecnológica del Sistema de Votación
+
+**Transcripción del diagrama:**
+
+| Nodo (<<device>>) | Artefactos (<<artifact>>) |
+|---|---|
+| Dispositivo del Votante | Navegador Web |
+| Dispositivo del Administrador | Panel Administrativo |
+| Servidor de Aplicaciones | Sistema de Votación; Sistema de Gestión Electoral; Servicio de Autenticación; Servicio de Autenticación Biométrica; Servicio de Cifrado; Servicio de Auditoría; Servicio de Reportes; Servicio de Monitoreo |
+| Servidor de Base de Datos | Base de Datos Electoral (Datos de Usuarios, Votos Cifrados, Registros de Auditoría, Historial Electoral, Plantillas Biométricas, Resultados Electorales) |
+| Sistema de Respaldo | Copias de Seguridad |
+
+Conexiones:
+
+- Dispositivo del Votante → Servidor de Aplicaciones: HTTPS
+- Dispositivo del Administrador → Servidor de Aplicaciones: HTTPS
+- Servidor de Aplicaciones → Servidor de Base de Datos: Conexión segura
+- Servidor de Base de Datos ↔ Sistema de Respaldo: Backup seguro
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama modela la arquitectura física del sistema y la distribución de los elementos del software, los bloques tridimensionales representan los nodos de hardware o entornos de ejecución, denominados como <<device>>, los rectángulos que se encuentran dentro de cada nodo representan los componentes del software, denominados como <<artifact>>, y las flechas indican la conexión entre los nodos etiquetadas con los respectivos protocolos o mecanismos de comunicación.
+
+## Diagrama MER
+
+### Figura 8. Diagrama del Modelo Entidad – Relación de la Base de Datos del Sistema Electoral
+
+**Transcripción del diagrama — Entidades** (formato: restricción · atributo · tipo):
+
+**PERSONA**
+- PK · id_persona · Integer
+- UNIQUE · documento · Varchar(30)
+- NOT NULL · nombres · Varchar(100)
+- NOT NULL · apellidos · Varchar(100)
+- NOT NULL · correo · Varchar(150)
+- telefono · Varchar(30)
+- imagen_documento · Blob
+- NOT NULL · fecha_registro · Datetime
+- NOT NULL · estado · Varchar(20)
+
+**USUARIO**
+- PK · id_usuario · Integer
+- FK · id_persona · Integer
+- FK · id_rol · Integer
+- NOT NULL · nombre_usuario · Varchar(80)
+- NOT NULL · password · Varchar(255)
+- NOT NULL · estado · Varchar(20)
+- NOT NULL · fecha_creacion · Datetime
+
+**ROL**
+- PK · id_rol · Integer
+- NOT NULL · nombre · Varchar(50)
+- descripcion · Varchar(255)
+
+**CANDIDATO**
+- PK · id_candidato · Integer
+- FK · id_persona · Integer
+- descripcion · Text
+- imagen · Blob
+- NOT NULL · estado · Varchar(20)
+
+**BIOMETRIA**
+- PK · id_biometria · Integer
+- FK · id_persona · Integer
+- NOT NULL · plantilla_biometrica · Blob
+- NOT NULL · fecha_registro · Datetime
+- NOT NULL · estado · Varchar(20)
+
+**VOTANTE**
+- PK · id_votante · Integer
+- FK · id_persona · Integer
+- NOT NULL · estado_habilitacion · Varchar(20)
+- fecha_habilitacion · Datetime
+
+**AUDITORIA**
+- PK · id_auditoria · Integer
+- FK · id_usuario · Integer
+- NOT NULL · accion · Varchar(80)
+- descripcion · Text
+- NOT NULL · fecha_hora · Datetime
+- direccion_ip · Varchar(45)
+- resultado · Varchar(30)
+
+**ELECCION**
+- PK · id_eleccion · Integer
+- NOT NULL · nombre · Varchar(120)
+- descripcion · Text
+- NOT NULL · fecha_inicio · Datetime
+- NOT NULL · fecha_fin · Datetime
+- NOT NULL · estado · Varchar(20)
+- NOT NULL · fecha_creacion · Datetime
+
+**INSCRIPCION_CANDIDATO**
+- PK · id_inscripcion · Integer
+- FK · id_eleccion · Integer
+- FK · id_candidato · Integer
+- NOT NULL · numero_candidato · Integer
+- NOT NULL · estado · Varchar(20)
+- UNIQUE · (id_eleccion, id_candidato)
+
+**PARTICIPACION**
+- PK · id_participacion · Integer
+- FK · id_votante · Integer
+- FK · id_eleccion · Integer
+- NOT NULL · fecha_hora · Datetime
+- UNIQUE · (id_votante, id_eleccion)
+
+**VOTO**
+- PK · id_voto · Integer
+- FK · id_eleccion · Integer
+- NOT NULL · voto_cifrado · Blob
+- NOT NULL · fecha_hora · Datetime
+
+**Relaciones:**
+
+| Entidad A | Cardinalidad | Entidad B | Etiqueta |
+|---|---|---|---|
+| PERSONA | 1 : 0..1 | CANDIDATO | puede ser |
+| PERSONA | 1 : 0..1 | USUARIO | puede ser |
+| PERSONA | 1 : 0..1 | VOTANTE | se registra como |
+| PERSONA | 1 : 1 | BIOMETRIA | identifica |
+| ROL | 1 : N | USUARIO | asigna |
+| USUARIO | 1 : N | AUDITORIA | genera |
+| CANDIDATO | 1 : N | INSCRIPCION_CANDIDATO | postula |
+| ELECCION | 1 : N | INSCRIPCION_CANDIDATO | inscribe |
+| VOTANTE | 1 : N | PARTICIPACION | participa |
+| ELECCION | 1 : N | PARTICIPACION | registra |
+| ELECCION | 1 : N | VOTO | almacena |
+
+(En el modelo, VOTO se relaciona solo con ELECCION y no tiene llave foránea hacia VOTANTE; la participación del votante se registra por separado en PARTICIPACION.)
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama representa el modelo entidad-relación de la base de datos del prototipo del proyecto, donde PK representa la llave primaria (Primary Key), FK es la llave foránea (Foreign Key), UNIQUE indica que ese registro es único y no se puede repetir, y NOT NULL se refiere a que es obligatorio ese campo y no permite valores nulos. Asimismo, se representan las entidades, los atributos, las relaciones y las cardinalidades establecidas para el sistema.
+
+## Diagrama de Actividades
+
+### Figura 9. Diagrama de Actividades para el Proceso de Autenticación y Emisión del Voto
+
+**Transcripción del diagrama** (carriles: Votante, Sistema, Módulo de Cifrado, BD):
+
+1. **Votante:** Inicio → Ingresar al sistema (solicitar acceso).
+2. **Sistema:** ¿Acceso válido?
+   - No → Denegar acceso → el Votante debe Registrarse en el sistema y volver a ingresar.
+   - Sí → ¿Votante habilitado y no bloqueado?
+     - No → Muestra mensaje de error/bloqueo → Fin.
+     - Sí → ¿Ya registró voto en esta elección?
+       - Sí → Muestra mensaje de "Voto ya emitido" → Fin.
+       - No → Solicitar autenticación biométrica.
+3. **Votante:** Realizar autenticación biométrica (envía biometría).
+4. **Sistema:** ¿Biometría válida?
+   - No → el Votante repite la autenticación biométrica.
+   - Sí → Mostrar lista de candidatos.
+5. **Votante:** Visualizar lista de candidatos → Seleccionar un candidato (envía selección).
+6. **Sistema:** Capturar selección → Solicitar confirmación → ¿Usuario confirma el voto?
+   - No → vuelve a Visualizar lista de candidatos.
+   - Sí → Enviar datos de voto al módulo de cifrado.
+7. **Módulo de Cifrado:** Generar ID único de voto → Registrar fecha y hora → Cifrar voto con ECC.
+8. **BD:** Almacenar de forma inmutable en BD → confirma.
+9. **Sistema:** Confirmar registro exitoso → Mostrar mensaje de éxito.
+10. **Votante:** Recibir mensaje de éxito → Fin.
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama describe el flujo secuencial y lógico que sigue un votante desde el ingreso al sistema hasta la confirmación de su voto, organizado en cuatro estructuras que intervienen en el flujo, los cuales son: votante, sistema, módulo de cifrado y base de datos (BD).
+
+### Figura 10. Diagrama de Actividades para la Gestión de Procesos Electorales, Candidatos y Auditoría del Sistema
+
+**Transcripción del diagrama** (carriles: Administrador, Sistema):
+
+1. **Administrador:** Inicio → Inicia sesión con rol de gestión.
+2. **Sistema:** ¿Es Administrador autorizado?
+   - No → Fin.
+   - Sí → Desplegar el panel administrativo.
+3. **Administrador:** Crear proceso electoral → Establecer fechas y horas de inicio/fin → Registrar candidatos adjuntando información básica e imágenes.
+4. **Sistema:** Guarda el proceso en estado "Programado".
+5. **Bifurcación (paralelo):**
+   - **Administrador:** Modifica datos de la elección o actualiza información de los candidatos.
+   - **Administrador:** Gestionar votantes → **Sistema:** ¿Biometría duplicada? Sí → Rechazar registro → Reintentar; No → continúa.
+6. **Unión** → **Sistema:** ¿Hora de inicio alcanzada?
+   - No → espera y vuelve a verificar.
+   - Sí → Abre la votación y cambia el estado a "Activa".
+7. **Bifurcación (paralelo) en el Sistema:** Supervisa de forma continua el funcionamiento de la plataforma; Registra logs de auditoría y actividades; Ejecuta copias de seguridad automáticas.
+8. **Unión** → **Sistema:** ¿Se cumplió la hora de finalización?
+   - No → vuelve a las actividades paralelas del paso 7.
+   - Sí → Ejecutar cierre automático de votación y cambia el estado a "Finalizado".
+9. **Sistema:** Realizar conteo automatizado de votos → Generar resultados estadísticos.
+10. **Administrador:** Consultar resultados y estadísticas → Descargar reportes en PDF/Excel → Cierra sesión (o archiva/elimina procesos antiguos).
+11. **Sistema:** Guardar en historial de procesos → Fin.
+
+_Fuente: Elaboración propia._
+_Nota:_ El diagrama modela el ciclo de vida de una elección desde su creación hasta la finalización, evidenciando desde dos perspectivas la del administrador y las respuestas automáticas del sistema. Las barras de color negro representan bifurcaciones (Fork) y uniones (Join), las cuales se encargan de coordinar los hilos que se ejecutan paralelamente.
+
+# Anexo C: Interfaz Gráfica de Usuario
+
+_(Sección sin contenido en el documento original: solo aparece el título.)_
