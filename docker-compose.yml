@@ -1,0 +1,34 @@
+# Levanta PostgreSQL y la aplicación completa (API + frontend) en http://localhost:8000
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: votoseguro
+      POSTGRES_USER: votoseguro
+      POSTGRES_PASSWORD: votoseguro
+    ports:
+      - "5432:5432"
+    volumes:
+      - datos:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U votoseguro"]
+      interval: 5s
+      retries: 10
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      VOTOSEGURO_DATABASE_URL: postgresql+psycopg://votoseguro:votoseguro@db:5432/votoseguro
+      # Genere una propia con: python3 -c "import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())"
+      VOTOSEGURO_MASTER_KEY: ${VOTOSEGURO_MASTER_KEY:?Defina VOTOSEGURO_MASTER_KEY en el archivo .env}
+    ports:
+      - "8000:8000"
+    volumes:
+      - respaldos:/app/backend/respaldos
+
+volumes:
+  datos:
+  respaldos:

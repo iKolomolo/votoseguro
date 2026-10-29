@@ -1,0 +1,78 @@
+@import "@fontsource-variable/source-sans-3";
+@import "tailwindcss";
+
+/* Design tokens extraídos del Figma (ver design-tokens/tokens.json). */
+@theme {
+  --font-sans: "Source Sans 3 Variable", system-ui, sans-serif;
+  --font-mono: Consolas, ui-monospace, "Cascadia Mono", monospace;
+
+  --color-primary: #003da5;
+  --color-primary-dark: #001a55;
+  --color-fondo: #f0f4fa;
+  --color-fondo-admin: #f8fafc;
+  --color-sutil: #f3f4f6;
+  --color-sutil-2: #f9fafb;
+  --color-linea: #c8d6e8;
+  --color-linea-suave: #e5e7eb;
+  --color-tinta: #0f172a;
+  --color-tinta-2: #4b5563;
+  --color-apagado: #9ca3af;
+
+  --color-info-bg: #eff6ff;
+  --color-info-bg-2: #eef3ff;
+  --color-info-borde: #bedbff;
+  --color-sobre-primario: #dbeafe;
+  --color-sobre-primario-2: #8ec5ff;
+
+  --color-exito: #1a7a4a;
+  --color-exito-fuerte: #15603b;
+  --color-exito-bg: #d1fae5;
+  --color-exito-suave: #f0fdf4;
+  --color-exito-borde: #b9f8cf;
+
+  --color-alerta: #f59e0b;
+  --color-alerta-texto: #b45309;
+  --color-alerta-fuerte: #92400e;
+  --color-alerta-bg: #fef3c7;
+
+  --color-peligro: #b91c1c;
+  --color-peligro-bg: #fef2f2;
+  --color-peligro-bg-2: #fee2e2;
+  --color-peligro-borde: #ffc9c9;
+
+  --color-violeta: #8b5cf6;
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-fondo font-sans text-tinta antialiased;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-alerta);
+    outline-offset: 2px;
+  }
+}
+
+@utility tarjeta {
+  @apply rounded-2xl border-[1.5px] border-linea bg-white shadow-sm;
+}
+
+/* Columna central de las pantallas del votante. Pantalla define --ancho-contenido (normal o estrecha). */
+@utility contenido {
+  @apply mx-auto w-full;
+  max-width: var(--ancho-contenido, 72rem);
+}
+
+@utility entrada {
+  @apply h-14 w-full rounded-xl border-[1.5px] border-linea bg-white px-4 text-base font-medium text-tinta placeholder:text-apagado outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:bg-sutil;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

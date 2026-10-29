@@ -1,0 +1,132 @@
+/* VotoSeguro — design tokens extraídos de Figma (4fx8drlog3RcIRDYqbG5Rh). Fuente canónica: tokens.json */
+:root {
+  /* Marca */
+  --color-primary: #003da5;
+  --color-primary-dark: #001a55;
+
+  /* Neutros */
+  --color-bg: #f0f4fa;
+  --color-bg-admin: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f3f4f6;
+  --color-surface-muted: #f9fafb;
+  --color-border: #c8d6e8;
+  --color-border-subtle: #e5e7eb;
+  --color-text: #0f172a;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #9ca3af;
+  --color-text-subtle: #6b7280;
+
+  /* Info */
+  --color-info-bg: #eff6ff;
+  --color-info-bg-alt: #eef3ff;
+  --color-info-border: #bedbff;
+  --color-on-primary-text: #dbeafe;
+  --color-on-primary-muted: #8ec5ff;
+
+  /* Éxito */
+  --color-success: #1a7a4a;
+  --color-success-strong: #15603b;
+  --color-success-bg: #d1fae5;
+  --color-success-bg-subtle: #f0fdf4;
+  --color-success-border: #b9f8cf;
+  --color-success-border-alpha: rgb(26 122 74 / 0.3);
+
+  /* Advertencia */
+  --color-warning: #f59e0b;
+  --color-warning-text: #b45309;
+  --color-warning-strong: #92400e;
+  --color-warning-bg: #fef3c7;
+
+  /* Peligro */
+  --color-danger: #b91c1c;
+  --color-danger-bg: #fef2f2;
+  --color-danger-bg-alt: #fee2e2;
+  --color-danger-border: #ffc9c9;
+
+  /* Acento */
+  --color-accent-violet: #8b5cf6;
+
+  /* Blanco translúcido sobre primario */
+  --color-white-10: rgb(255 255 255 / 0.1);
+  --color-white-15: rgb(255 255 255 / 0.15);
+  --color-white-20: rgb(255 255 255 / 0.2);
+  --color-white-80: rgb(255 255 255 / 0.8);
+  --color-white-90: rgb(255 255 255 / 0.9);
+
+  /* Tipografía */
+  --font-sans: "Source Sans 3", system-ui, sans-serif;
+  --font-mono: Consolas, ui-monospace, monospace;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-black: 900;
+
+  --text-3xs: 9px;   --leading-3xs: 13.5px;
+  --text-2xs: 10px;  --leading-2xs: 15px;
+  --text-xs-plus: 11px; --leading-xs-plus: 16.5px;
+  --text-xs: 12px;   --leading-xs: 16px;
+  --text-sm: 14px;   --leading-sm: 20px;
+  --text-md: 16px;   --leading-md: 24px;
+  --text-lg: 18px;   --leading-lg: 28px;
+  --text-xl: 20px;   --leading-xl: 25px;
+  --text-2xl: 24px;  --leading-2xl: 32px;
+  --text-3xl: 30px;  --leading-3xl: 36px;
+  --text-4xl: 36px;  --leading-4xl: 45px;
+
+  --tracking-display: -0.9px;
+  --tracking-nav: 0.225px;
+  --tracking-stat-label: 0.3px;
+  --tracking-badge: 0.6px;
+  --tracking-eyebrow: 1px;
+  --tracking-overline: 1.2px;
+  --tracking-code: 2.4px;
+
+  /* Espaciado */
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* Radios */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Bordes */
+  --border-hairline: 1px;
+  --border-default: 1.75px; /* redondear a 1.5px o 2px en código */
+  --border-indicator: 2px;
+
+  /* Sombras */
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --blur-backdrop: 16px;
+
+  /* Tamaños */
+  --app-max-width: 384px;
+  --button-min-height: 58px;
+  --input-height: 55px;
+  --step-indicator: 32px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 22px;
+}
