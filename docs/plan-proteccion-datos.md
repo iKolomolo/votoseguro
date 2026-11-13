@@ -20,7 +20,7 @@
 | Política de Tratamiento | Página pública `/privacidad`, enlazada desde la autorización y el pie de página. | Decreto 1377 art. 13 |
 | Derechos del titular | Nueva sección "Mis datos" (consultar, revocar, suprimir) y bandeja de solicitudes en el panel con plazos legales. | Ley 1581 arts. 8, 14 y 15 |
 | Retención | Plazos por categoría de dato, borrado automático y **respaldos que caducan a los 7 días**. | Decreto 1377 arts. 11 y 13 |
-| Alojamiento en EE. UU. | Se informa en la autorización y se documenta la transmisión a Render y Vercel (Encargados). | Ley 1581 art. 26; Decreto 1377 arts. 24–25; Circular SIC 005/2017 |
+| Alojamiento en EE. UU. | Se informa en la autorización y se documenta la transmisión a Render, Neon y Vercel (Encargados). | Ley 1581 art. 26; Decreto 1377 arts. 24–25; Circular SIC 005/2017 |
 
 ---
 
@@ -28,7 +28,7 @@
 
 | Norma | Qué exige para VotoSeguro |
 |---|---|
-| **Ley 1581 de 2012, art. 3** | Define Responsable, Encargado, Titular y Tratamiento. Los estudiantes que deciden qué datos se recogen y para qué son el **Responsable**. Render y Vercel son **Encargados**. |
+| **Ley 1581 de 2012, art. 3** | Define Responsable, Encargado, Titular y Tratamiento. Los estudiantes que deciden qué datos se recogen y para qué son el **Responsable**. Render, Neon y Vercel son **Encargados**. |
 | **Art. 4** | Principios: legalidad, finalidad, libertad, veracidad, transparencia, acceso y circulación restringida, seguridad y confidencialidad. |
 | **Art. 5** | "los datos biométricos" son **datos sensibles**. Aplica a la foto de la cédula cuando se usa para cotejo, al descriptor y a la plantilla. |
 | **Art. 6** | Se prohíbe tratar datos sensibles salvo excepciones. La única aplicable es la **(a): autorización explícita**. La (e), fines científicos, exige suprimir la identidad, así que solo sirve para estadísticas anónimas del piloto. |
@@ -69,7 +69,7 @@
 |---|---|---|
 | **Responsable del Tratamiento** | Los tres estudiantes autores del trabajo de grado: **Mario Mendoza, Julieth Riveros y Nicolas Marcelo** (también son los tres superadministradores). La UMB **no** es corresponsable. | Nombres completos, dirección y teléfono (ver §15). |
 | **Área de atención de peticiones** | El equipo responsable, por el correo `nicololmomo123@gmail.com`. | Se reemplazará por el correo del proyecto cuando exista. |
-| **Encargados** | Render (backend y base de datos) y Vercel (frontend). | Revisar sus DPA (ver §10). |
+| **Encargados** | Render (backend), Neon (base de datos PostgreSQL) y Vercel (frontend). | Revisar sus DPA (ver §10). |
 | **Titulares** | Ciudadanos que participen en el piloto, mayores de 18 años. | — |
 
 ---
@@ -173,7 +173,7 @@ Rostro en vivo ─────────────────────�
 >
 > **Cómo se protegen:** todos los datos se guardan cifrados con criptografía de curva elíptica. La plantilla de su rostro es cancelable: se puede anular y no permite reconstruir su imagen. Solo los responsables del proyecto acceden al sistema, y cada acceso queda registrado.
 >
-> **Dónde se alojan:** en servidores de Render (backend y base de datos) y Vercel (sitio web), ubicados en **Estados Unidos**, país que la Superintendencia de Industria y Comercio considera con nivel adecuado de protección. Estas empresas actúan solo como encargadas del almacenamiento.
+> **Dónde se alojan:** en servidores de Render (sistema), Neon (base de datos) y Vercel (sitio web), ubicados en **Estados Unidos**, país que la Superintendencia de Industria y Comercio considera con nivel adecuado de protección. Estas empresas actúan solo como encargadas del almacenamiento.
 >
 > **Por cuánto tiempo:** los datos de la cara impresa en la cédula se borran apenas termina su inscripción (máximo 30 minutos). Sus datos personales y su plantilla biométrica se borran a más tardar el **30 de diciembre de 2027**, o antes si usted lo pide. Solo se conserva, sin su nombre ni su número de documento legible, una constancia de que aceptó esta autorización, durante 3 años (ver Política de Tratamiento).
 >
@@ -313,7 +313,7 @@ Se publicará en `/privacidad` y en `docs/politica-tratamiento-datos.md`. Conten
 > - Respaldos cifrados y firmados que caducan a los 7 días.
 > - Procedimiento de incidentes con reporte a la SIC.
 >
-> **13. Transmisión internacional.** Los datos se alojan con Render y Vercel en Estados Unidos, país con nivel adecuado según la Circular Externa SIC 005 de 2017. Los Encargados tratan los datos solo por cuenta del Responsable y bajo sus términos de procesamiento de datos.
+> **13. Transmisión internacional.** Los datos se alojan con Render, Neon y Vercel en Estados Unidos, país con nivel adecuado según la Circular Externa SIC 005 de 2017. Los Encargados tratan los datos solo por cuenta del Responsable y bajo sus términos de procesamiento de datos.
 >
 > **14. Conservación.** [Tabla del §8.1.]
 >
@@ -323,10 +323,11 @@ Se publicará en `/privacidad` y en `docs/politica-tratamiento-datos.md`. Conten
 
 ## 10. Transmisión internacional y seguridad
 
-### 10.1 Encargados (Render y Vercel)
+### 10.1 Encargados (Render, Neon y Vercel)
 
 - **Decisión:** el piloto se queda en Render y Vercel (plan gratuito). Desplegar Render en una región de **EE. UU. (Oregon, Ohio o Virginia)**, nunca en Singapur (no figura en la lista de la SIC). Hay que comprobar la región actual del servicio y de la base de datos en el panel de Render.
-- Leer los DPA de Render y Vercel y hacer una tabla que compruebe las tres cláusulas mínimas del art. 25 del Decreto 1377:
+- **Base de datos en Neon (13-11-2026):** la Postgres gratuita de Render expira a los 30 días y se borra a los 44, lo que no cumple la conservación hasta el fin del piloto. Se usa Neon (plan gratuito, sin vencimiento) en una región de EE. UU. (AWS us-east), con la cadena de conexión directa. Política v1.5 y autorización v1.5 lo informan.
+- Leer los DPA de Render, Neon y Vercel y hacer una tabla que compruebe las tres cláusulas mínimas del art. 25 del Decreto 1377:
   - tratar los datos por cuenta del Responsable;
   - medidas de seguridad;
   - confidencialidad.
@@ -336,7 +337,7 @@ Se publicará en `/privacidad` y en `docs/politica-tratamiento-datos.md`. Conten
 ### 10.2 Llave maestra
 
 - Hoy está en una variable de entorno del mismo servidor: quien compromete el backend obtiene a la vez los datos cifrados y la llave.
-- Mínimo: activar MFA en Render, Vercel y GitHub, limitar quién ve las variables de entorno y documentar cómo se rota la llave.
+- Mínimo: activar MFA en Render, Neon, Vercel y GitHub, limitar quién ve las variables de entorno y documentar cómo se rota la llave.
 - Mejora (fase 3): llevar la llave a un servicio de gestión de llaves (KMS) externo.
 
 ### 10.3 Incidentes de seguridad

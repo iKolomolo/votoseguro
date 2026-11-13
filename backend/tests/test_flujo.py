@@ -531,7 +531,7 @@ def test_autorizacion_es_obligatoria_y_queda_probada(cliente):
     from app.models import Autorizacion
 
     texto = cliente.get("/api/publico/autorizacion").json()
-    assert texto["version"] == "1.4" and len(texto["hash"]) == 64
+    assert texto["version"] == "1.5" and len(texto["hash"]) == 64
     assert "dos caras de su cédula" in str(texto) and "huella dactilar" in str(texto)
     assert "si no la completa en 30 minutos, se descarta" in str(texto)
     assert "30 de diciembre de 2027" in str(texto) and "no estoy obligado(a)" in texto["casillas"]["biometria"]

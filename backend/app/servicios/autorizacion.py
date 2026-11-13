@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 from ..config import get_settings
 from ..models import Autorizacion
 
-VERSION = "1.4"
+VERSION = "1.5"
 _MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
           "noviembre", "diciembre"]
 
@@ -73,7 +73,7 @@ def texto() -> dict:
                 "cancelable: se puede anular y no permite reconstruir su imagen. Solo los responsables del proyecto "
                 "acceden al sistema, y sus ingresos y acciones quedan registrados.")},
             {"titulo": "Dónde se alojan", "texto": (
-                "En servidores de Render (sistema y base de datos) y Vercel (sitio web), ubicados en **Estados "
+                "En servidores de Render (sistema), Neon (base de datos) y Vercel (sitio web), ubicados en **Estados "
                 "Unidos**, país que la Superintendencia de Industria y Comercio considera con nivel adecuado de "
                 "protección. Estas empresas actúan solo como encargadas del almacenamiento.")},
             {"titulo": "Por cuánto tiempo", "texto": (

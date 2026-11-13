@@ -2,7 +2,7 @@
 
 **VotoSeguro — prototipo académico de votación electrónica**
 
-Versión 1.4 · Vigente desde el 11 de noviembre de 2026 · Huella SHA-256: `3b74aeb83416202e007019669df71b79145196e0a23ea6199a3cdfc817f0ee88`
+Versión 1.5 · Vigente desde el 13 de noviembre de 2026 · Huella SHA-256: `1e5882bd7b2e3882096dac43f1e1373768c75cecb05a700e3fe43849eeb79ebf`
 
 > Generado desde `backend/app/servicios/politica.py`. No lo edite a mano: cambie ese archivo y vuelva a generarlo.
 
@@ -83,7 +83,7 @@ Estos son **todos** los datos que el sistema trata. No se usan para ninguna otra
 | Rostro capturado con la cámara (dato sensible) | Inscribirle y comprobar que es usted cada vez que vota o consulta sus datos. | El video **no sale de su dispositivo**: su navegador calcula 128 valores numéricos y, para la prueba de vida, la posición de 68 puntos del rostro (ojos, nariz, boca, contorno) en 4 momentos. Solo eso se envía. Los puntos se usan en el momento y **no se guardan**. Se guarda una plantilla cancelable cifrada hasta el 30 de diciembre de 2027 o hasta que la revoque. |
 | Estado de habilitación y mesa | Saber si puede votar. | Hasta el 30 de diciembre de 2027 o hasta que pida borrarlo. |
 | Contadores de intentos (de su conexión y de su documento, guardados como un código que no revela ni la IP ni el número) | Frenar ataques: tras 5 rostros que no coinciden con un documento, ese documento se pausa 30 minutos, y cada conexión tiene un máximo de intentos. | Solo mientras dura la pausa o la ventana de conteo (minutos); luego se borran. |
-| Participación (que usted votó en una elección, sin decir por quién) | Garantizar que cada persona vote una sola vez. | Solo se guarda el día, no la hora. Hasta 30 días después del cierre de cada elección, plazo para reclamaciones; después se desvincula de su identidad. |
+| Participación (que usted votó en una elección, sin decir por quién) | Garantizar que cada persona vote una sola vez y permitirle confirmar que su voto quedó registrado: en «Verificar comprobante», con su documento y su **fecha de nacimiento**, el sistema muestra su nombre, su documento y en qué votaciones participó y qué día, nunca por quién. Quien conozca esos dos datos de otra persona podría hacer la consulta; por eso un dato errado responde igual que un documento no inscrito, cada documento admite 5 intentos fallidos cada 30 minutos y cada consulta queda en la bitácora. | Solo se guarda el día, no la hora. Hasta 30 días después del cierre de cada elección, plazo para reclamaciones; después se desvincula de su identidad. |
 | Voto | Contar los votos y permitirle verificar que el suyo fue contado. | Se guarda cifrado, **sin ningún vínculo con su identidad**, mezclado con los demás y con la hora del cierre de la votación, así que no es un dato personal. Se conserva con los resultados de la simulación. |
 | Prueba de su autorización (versión del texto, casillas marcadas y fecha) | Demostrar que usted autorizó el Tratamiento, como exige la ley. | Mientras se traten sus datos y hasta 3 años después de borrarlos, sin su nombre ni su número de documento legible. |
 | Dirección IP, fecha, hora y resultado de las acciones (bitácora de auditoría) | Seguridad del sistema, detección de fraudes y atención de incidentes. | Hasta un año después del 30 de diciembre de 2027. La bitácora no guarda nombres ni números de documento de los participantes; sí guarda el correo del administrador que hizo cada acción, para saber quién fue. |
@@ -176,7 +176,7 @@ Como Responsables nos comprometemos a cumplir los deberes del art. 17 de la Ley 
 
 ## 16. Dónde se alojan los datos y quién más los trata
 
-El sistema se aloja en servicios de **Render** (aplicación y base de datos) y **Vercel** (sitio web), con servidores en los **Estados Unidos de América**, país que la SIC reconoce con un nivel adecuado de protección de datos (Circular Externa 005 de 2017). Esas empresas actúan como **Encargadas**: solo almacenan y procesan los datos por cuenta de los Responsables, bajo sus términos de tratamiento de datos, y no pueden usarlos para fines propios. Esto es una **transmisión internacional** (Ley 1581, art. 26; Decreto 1377, arts. 24 y 25), que usted autoriza al aceptar el Tratamiento. Los datos viajan siempre cifrados (HTTPS) y se guardan cifrados.
+El sistema se aloja en servicios de **Render** (aplicación), **Neon** (base de datos PostgreSQL) y **Vercel** (sitio web), con servidores en los **Estados Unidos de América**, país que la SIC reconoce con un nivel adecuado de protección de datos (Circular Externa 005 de 2017). Esas empresas actúan como **Encargadas**: solo almacenan y procesan los datos por cuenta de los Responsables, bajo sus términos de tratamiento de datos, y no pueden usarlos para fines propios. Esto es una **transmisión internacional** (Ley 1581, art. 26; Decreto 1377, arts. 24 y 25), que usted autoriza al aceptar el Tratamiento. Los datos viajan siempre cifrados (HTTPS) y se guardan cifrados.
 
 **No vendemos, alquilamos, cedemos ni compartimos sus datos con nadie más**, y no los usamos para publicidad, perfiles ni fines políticos. En el documento de grado, sus presentaciones y cualquier publicación académica solo se usan **estadísticas anónimas** o datos de prueba, que no permiten identificar a nadie.
 
@@ -223,4 +223,4 @@ Si cambiamos esta política de forma sustancial, en especial sobre quiénes son 
 
 ## 23. Vigencia
 
-Esta política (versión 1.4) rige desde el **11 de noviembre de 2026**. La base de datos del piloto estará vigente hasta el **30 de diciembre de 2027**. Llegada esa fecha, el sistema cierra las inscripciones y borra las plantillas biométricas y los datos personales, y solo se conservan las estadísticas anónimas y lo indicado en el numeral 6. Esta política se rige por las leyes de la República de Colombia.
+Esta política (versión 1.5) rige desde el **13 de noviembre de 2026**. La base de datos del piloto estará vigente hasta el **30 de diciembre de 2027**. Llegada esa fecha, el sistema cierra las inscripciones y borra las plantillas biométricas y los datos personales, y solo se conservan las estadísticas anónimas y lo indicado en el numeral 6. Esta política se rige por las leyes de la República de Colombia.

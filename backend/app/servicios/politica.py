@@ -17,8 +17,8 @@ from functools import lru_cache
 from ..config import get_settings
 from .consultas import EDAD_MINIMA
 
-VERSION = "1.4"
-VIGENTE_DESDE = date(2026, 11, 11)
+VERSION = "1.5"
+VIGENTE_DESDE = date(2026, 11, 13)
 _MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre",
           "noviembre", "diciembre"]
 
@@ -161,7 +161,12 @@ def texto() -> dict:
                      "minutos, y cada conexión tiene un máximo de intentos.",
                      "Solo mientras dura la pausa o la ventana de conteo (minutos); luego se borran."],
                     ["Participación (que usted votó en una elección, sin decir por quién)",
-                     "Garantizar que cada persona vote una sola vez.",
+                     "Garantizar que cada persona vote una sola vez y permitirle confirmar que su voto quedó "
+                     "registrado: en «Verificar comprobante», con su documento y su **fecha de nacimiento**, el "
+                     "sistema muestra su nombre, su documento y en qué votaciones participó y qué día, nunca por "
+                     "quién. Quien conozca esos dos datos de otra persona podría hacer la consulta; por eso un dato "
+                     "errado responde igual que un documento no inscrito, cada documento admite 5 intentos fallidos "
+                     "cada 30 minutos y cada consulta queda en la bitácora.",
                      "Solo se guarda el día, no la hora. Hasta 30 días después del cierre de cada elección, plazo "
                      "para reclamaciones; después se desvincula de su identidad."],
                     ["Voto",
@@ -313,8 +318,8 @@ def texto() -> dict:
                 "Cumplir las instrucciones de la Superintendencia de Industria y Comercio.",
             ]},
             {"id": "encargados", "titulo": "16. Dónde se alojan los datos y quién más los trata", "texto": (
-                "El sistema se aloja en servicios de **Render** (aplicación y base de datos) y **Vercel** (sitio "
-                "web), con servidores en los **Estados Unidos de América**, país que la SIC reconoce con un nivel "
+                "El sistema se aloja en servicios de **Render** (aplicación), **Neon** (base de datos PostgreSQL) y "
+                "**Vercel** (sitio web), con servidores en los **Estados Unidos de América**, país que la SIC reconoce con un nivel "
                 "adecuado de protección de datos (Circular Externa 005 de 2017). Esas empresas actúan como "
                 "**Encargadas**: solo almacenan y procesan los datos por cuenta de los Responsables, bajo sus "
                 "términos de tratamiento de datos, y no pueden usarlos para fines propios. Esto es una "
