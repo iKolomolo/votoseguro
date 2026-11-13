@@ -29,5 +29,6 @@ services:
       # Render pasa la IP real del ciudadano en X-Forwarded-For (límites de intentos y bitácora).
       - key: VOTOSEGURO_CONFIAR_X_FORWARDED_FOR
         value: "true"
+      # Producción sin datos de ejemplo: solo personas reales que se inscriban voluntariamente.
       - key: VOTOSEGURO_SEMBRAR_DATOS_DEMO
-        value: "true"
+        value: "false"
