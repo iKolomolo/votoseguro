@@ -139,7 +139,7 @@ export function LoginAdmin() {
           </div>
           <form onSubmit={entrar} className="flex w-full flex-col gap-4 rounded-2xl border-[1.5px] border-white/20 bg-white/10 p-5 backdrop-blur-lg">
             <label className="flex flex-col gap-2 text-xs font-bold tracking-[0.6px] uppercase">Correo institucional
-              <input type="email" required autoComplete="username" className={campo} placeholder="usuario@votoseguro.gov.co"
+              <input type="email" required autoComplete="username" className={campo} placeholder="usuario@votoseguro.local"
                 value={correo} onChange={(e) => setCorreo(e.target.value)} />
             </label>
             <label className="flex flex-col gap-2 text-xs font-bold tracking-[0.6px] uppercase">Contraseña

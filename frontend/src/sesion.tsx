@@ -2,6 +2,13 @@
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import type { Candidato, Comprobante, Eleccion, Usuario } from "./api";
 
+// Una versión anterior guardaba los comprobantes de voto en localStorage; se borran de los equipos que los tengan.
+try {
+  localStorage.removeItem("vs-comprobantes");
+} catch {
+  // localStorage no disponible: no hay nada que borrar.
+}
+
 function leer<T>(clave: string, inicial: T): T {
   try {
     const valor = sessionStorage.getItem(clave);

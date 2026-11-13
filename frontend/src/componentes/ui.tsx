@@ -19,6 +19,11 @@ export function Pantalla({ children, className = "", estrecha = false }: {
   );
 }
 
+/** Texto con **negrillas** marcadas con dobles asteriscos (lo usa el texto de la autorización). */
+export function ConNegrilla({ texto }: { texto: string }) {
+  return <>{texto.split("**").map((parte, i) => (i % 2 ? <b key={i}>{parte}</b> : parte))}</>;
+}
+
 export function GovHeader({ titulo, subtitulo, onVolver, antetitulo = "VotoSeguro Colombia", color = "bg-primary" }: {
   titulo: string; subtitulo?: string; onVolver?: () => void; antetitulo?: string; color?: string;
 }) {

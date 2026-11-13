@@ -4,7 +4,7 @@ import { AlertCircle, Check, CheckCircle2, CircleCheck, Landmark, Lock, X } from
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router";
 import { api, ErrorApi } from "../../api";
-import { useCapturaFacial, VistaCamara } from "../../biometria/CapturaFacial";
+import { retosDelToken, useCapturaFacial, VistaCamara } from "../../biometria/CapturaFacial";
 import { Alerta, BigButton, Campo, Cargando, GovHeader, LockBadge, Pantalla, ProgressSteps } from "../../componentes/ui";
 import { useVotante } from "../../sesion";
 
@@ -19,7 +19,7 @@ export function Identificacion() {
   const navegar = useNavigate();
   const { actualizar } = useVotante();
   const [datos, setDatos] = useState({ tipo_documento: "CC", documento: "" });
-  const [error, setError] = useState<{ mensaje: string; noInscrito: boolean }>();
+  const [error, setError] = useState<string>();
   const [enviando, setEnviando] = useState(false);
 
   async function enviar(e: FormEvent) {
@@ -35,10 +35,7 @@ export function Identificacion() {
         navegar("/bloqueado", { state: { motivo: err.message } });
         return;
       }
-      setError({
-        mensaje: err instanceof ErrorApi ? err.message : "No fue posible validar el documento",
-        noInscrito: err instanceof ErrorApi && err.estado === 404,
-      });
+      setError(err instanceof ErrorApi ? err.message : "No fue posible validar el documento");
     } finally {
       setEnviando(false);
     }
@@ -70,17 +67,7 @@ export function Identificacion() {
             </Campo>
           </div>
         </section>
-        {error && (
-          <Alerta tipo={error.noInscrito ? "aviso" : "error"} titulo={error.noInscrito ? "Documento no inscrito" : "No se pudo continuar"}
-            icono={<AlertCircle className="size-5" />}>
-            {error.mensaje}
-            {error.noInscrito && (
-              <Link to="/registraduria" className="mt-2 flex items-center gap-1 font-bold text-primary underline">
-                <Landmark className="size-4" /> Ir a la Registraduría
-              </Link>
-            )}
-          </Alerta>
-        )}
+        {error && <Alerta tipo="error" titulo="No se pudo continuar" icono={<AlertCircle className="size-5" />}>{error}</Alerta>}
         <div className="pt-2 pb-6 md:mx-auto md:w-full md:max-w-sm">
           <BigButton type="submit" cargando={enviando}>Continuar →</BigButton>
         </div>
@@ -93,7 +80,7 @@ export function Biometria() {
   const navegar = useNavigate();
   const { flujo, actualizar } = useVotante();
   const camara = useCapturaFacial();
-  const [error, setError] = useState<string>();
+  const [error, setError] = useState<{ mensaje: string; noVerificado: boolean }>();
   const [verificado, setVerificado] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
@@ -104,9 +91,9 @@ export function Biometria() {
   async function iniciar() {
     setError(undefined);
     try {
-      const { descriptor } = await camara.capturar();
+      const { descriptor, vida } = await camara.capturar(retosDelToken(flujo.tokenFlujo));
       setEnviando(true);
-      const r = await api<{ token: string }>("/api/votante/biometria", { token: flujo.tokenFlujo, cuerpo: { descriptor } });
+      const r = await api<{ token: string }>("/api/votante/biometria", { token: flujo.tokenFlujo, cuerpo: { descriptor, vida } });
       camara.detener();
       actualizar({ tokenFlujo: r.token });
       setVerificado(true);
@@ -115,7 +102,10 @@ export function Biometria() {
         navegar("/bloqueado", { state: { motivo: err.message } });
         return;
       }
-      setError(err instanceof Error ? err.message : "No fue posible verificar el rostro");
+      setError({
+        mensaje: err instanceof Error ? err.message : "No fue posible verificar el rostro",
+        noVerificado: err instanceof ErrorApi && err.estado === 401,
+      });
     } finally {
       setEnviando(false);
     }
@@ -152,7 +142,16 @@ export function Biometria() {
             )}
           </div>
         </section>
-        {error && <Alerta tipo="error" titulo="Verificación fallida" icono={<AlertCircle className="size-5" />}>{error}</Alerta>}
+        {error && (
+          <Alerta tipo="error" titulo="Verificación fallida" icono={<AlertCircle className="size-5" />}>
+            {error.mensaje}
+            {error.noVerificado && (
+              <Link to="/registraduria" className="mt-2 flex items-center gap-1 font-bold text-primary underline">
+                <Landmark className="size-4" /> Ir a la Registraduría
+              </Link>
+            )}
+          </Alerta>
+        )}
         <div className="pb-6 md:mx-auto md:w-full md:max-w-sm">
           {verificado ? (
             <BigButton onClick={() => navegar("/elegibilidad")}>Continuar →</BigButton>

@@ -49,10 +49,16 @@ export function Bienvenida() {
             <ShieldCheck className="size-5.5" /> Iniciar Verificación
           </BigButton>
           <p className="pt-3 pb-2 text-center text-xs text-info-borde">
-            Registrado por la Registraduría Nacional del Estado Civil
+            Simulación académica · No pertenece a la Registraduría Nacional del Estado Civil ni tiene efectos electorales
           </p>
           <Link to="/verificar" className="block text-center text-xs font-semibold text-white underline">
-            Verificar un comprobante de votación
+            Verificar comprobante de votación
+          </Link>
+          <Link to="/mis-datos" className="mt-2 block text-center text-xs font-semibold text-white underline">
+            Mis datos personales
+          </Link>
+          <Link to="/privacidad" className="mt-2 block text-center text-xs font-semibold text-white underline">
+            Política de privacidad y tratamiento de datos
           </Link>
         </footer>
       </div>

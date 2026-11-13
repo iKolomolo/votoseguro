@@ -48,7 +48,7 @@ La cámara del navegador solo funciona en `localhost` o con HTTPS.
 
 En el primer arranque se crean:
 
-- La cuenta **admin@votoseguro.gov.co / Admin2026\*** (Superadministrador). Cámbiela desde *Más → Mi cuenta*.
+- La cuenta **admin@votoseguro.local / Admin2026\*** (Superadministrador). Cámbiela desde *Más → Mi cuenta*.
 - Si `VOTOSEGURO_SEMBRAR_DATOS_DEMO=true`: 60 votantes de ejemplo y 3 elecciones como en el diseño, una cerrada con
   47 votos, una activa y una próxima. Los candidatos son de demostración y los partidos son ficticios.
 
@@ -75,7 +75,8 @@ sistema de respaldo.
 ```
 Navegador (React)                     Servidor (FastAPI)                         PostgreSQL
 ─────────────────                     ──────────────────                         ──────────
-Foto de la cédula ─ imagen + cara ──▶ OCR del número (Tesseract)                   ─▶ DOCUMENTO_IDENTIDAD (cifrada ECIES)
+Foto de la cédula ─ imagen + cara ──▶ OCR en memoria; la imagen se descarta          ─▶ VERIFICACION_DOCUMENTO (solo huella)
+                                    (inscripción atómica: nada se guarda hasta terminar; los pasos viajan sellados con ECIES)
 Cámara → face-api.js ─ descriptor ──▶ Servicio biométrico (plantilla cancelable) ─▶ BIOMETRIA (cifrada ECIES)
 Formulario de voto ───────────────────▶ Servicio de cifrado (ECIES con la llave     ─▶ VOTO (cifrado, sin votante)
                                         pública de la elección)                        PARTICIPACION (quién votó)
@@ -89,10 +90,10 @@ Panel administrativo ─────────────────▶ Gest
 |---|---|
 | **Voto** | Cada elección tiene su propio par ECC. El voto se cifra con **ECIES** (ECDH efímero P-256 → HKDF-SHA256 → AES-256-GCM) usando la llave pública de la elección. El código de la elección va como dato autenticado, así que un voto no puede moverse a otra elección. Lleva relleno aleatorio: dos votos por el mismo candidato producen textos cifrados distintos. |
 | **Escrutinio** | La llave privada de la elección está envuelta con la clave maestra (AES-256-GCM) y solo se usa al cerrar. Antes del cierre los resultados son inaccesibles, incluso para el administrador. |
-| **Comprobante** | Código `VS-AAAA-XXXXXXXX`. Solo se guarda su SHA-256 junto con una firma **ECDSA P-256** sobre (elección, hash del voto, hash del código). Cualquiera puede verificarlo en `/verificar` sin conocer el candidato. |
+| **Comprobante** | Código `VS-AAAA-XXXXXXXX`. Solo se guarda su SHA-256 junto con una firma **ECDSA P-256** sobre (elección, hash del voto, hash del código). El servidor comprueba la integridad del voto y la firma con `POST /api/publico/verificar`. En `/verificar` el ciudadano consulta con su documento y su fecha de nacimiento si votó, en qué votación y qué día, nunca por quién; un dato errado responde igual que un documento inexistente y cada documento admite 5 intentos fallidos cada 30 minutos. |
 | **Datos personales** | Documento, nombres, correo y fecha de nacimiento se cifran con ECIES. El documento se busca con un **índice ciego** (HMAC-SHA256), sin guardarlo en claro. |
-| **Plantilla biométrica** | El descriptor facial de 128 valores se transforma con una permutación e inversión de signos secretas por usuario (**plantilla cancelable**, Abd El-Rahiem et al., 2022). La transformación conserva las distancias y puede revocarse. Tanto la plantilla como la semilla se guardan cifradas con ECIES. |
-| **Cédula** | En la inscripción (Registraduría). El servidor lee el número con OCR (Tesseract) sobre la misma imagen que guarda, y el rostro en vivo debe quedar a menos de `umbral_cedula` (0,6) del descriptor de la cara impresa. Imagen y descriptor se cifran con ECIES (llave del sistema `documento`); solo el Superadministrador puede ver la imagen y cada consulta queda auditada. |
+| **Plantilla biométrica** | El descriptor facial de 128 valores se transforma con una permutación e inversión de signos secretas por usuario (**plantilla cancelable**, Abd El-Rahiem et al., 2022). La transformación conserva las distancias y puede revocarse. Tanto la plantilla como la semilla se guardan cifradas con ECIES. Se conservan **hasta el fin del piloto** (`VOTOSEGURO_FIN_PILOTO`, por defecto 2027-12-30), cuando el ciclo de supervisión las borra y cierra las inscripciones, **o hasta que el titular la revoque** en *Mis datos personales* tras verificar su documento y su rostro (Ley 1581 art. 8 lit. e; Decreto 1377 arts. 9 y 11). |
+| **Cédula** | En la inscripción (Registraduría). Se fotografían **las dos caras** (cédula amarilla o digital). El servidor las lee con OCR (Tesseract, en español) **en memoria y no guarda las imágenes** (Decreto 1377 de 2013, arts. 4 y 11), y exige que el número, los nombres, los apellidos y la fecha de nacimiento escritos coincidan con la cédula: en la amarilla, por las etiquetas impresas y la fecha del reverso; en la digital, también por la zona MRZ. Solo quedan las huellas SHA-256 de ambas caras, el resultado de la comparación y la distancia del cotejo. Al reinscribirse, los datos confirmados por la cédula rectifican los guardados. La inscripción es **atómica**: mientras está en curso no se escribe nada en la base; los datos y el descriptor de la cara impresa viajan sellados con ECIES (llave del sistema `documento`) en el token del navegador y se confirman en una sola transacción al final. Si no se completa en 30 minutos o se agotan los intentos, se descarta sin dejar datos. El rostro en vivo debe quedar a menos de `umbral_cedula` (0,6) de ese descriptor. |
 | **Auditoría** | Cada registro incluye el hash del anterior (cadena SHA-256). Alterar o borrar uno rompe la cadena, y el panel lo detecta. |
 | **Respaldos** | Volcado comprimido, cifrado con ECIES y firmado con ECDSA. Se verifica la firma antes de restaurar. |
 | **Sesiones** | JWT HS256 de corta duración por etapa (identificación → biometría → votación). Contraseñas con Argon2. |

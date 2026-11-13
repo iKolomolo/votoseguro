@@ -26,5 +26,8 @@ services:
       # Dominios del proyecto "votoseguro" en Vercel, incluidas sus vistas previas (votoseguro-xxxx.vercel.app).
       - key: VOTOSEGURO_CORS_ORIGEN_REGEX
         value: https://votoseguro(-[a-z0-9-]+)?\.vercel\.app
+      # Render pasa la IP real del ciudadano en X-Forwarded-For (límites de intentos y bitácora).
+      - key: VOTOSEGURO_CONFIAR_X_FORWARDED_FOR
+        value: "true"
       - key: VOTOSEGURO_SEMBRAR_DATOS_DEMO
         value: "true"

@@ -18,7 +18,7 @@ from ..db import Base
 from ..models import Respaldo
 from . import auditoria
 
-_EXCLUIDAS = {"respaldo"}
+_EXCLUIDAS = {"respaldo", "supresion"}  # supresion: ver retencion.reaplicar_supresiones
 _CONTEXTO = b"respaldo-v1"
 
 
@@ -106,6 +106,9 @@ def restaurar(db: Session, respaldo: Respaldo, *, actor: str, ip: str | None) ->
             db.execute(text("SELECT setval(pg_get_serial_sequence(:t, :c), :v, :llamado)"),
                        {"t": tabla.name, "c": pk[0].name, "v": maximo or 1, "llamado": maximo is not None})
     llavero.limpiar_cache()
+    # Quien pidió borrar sus datos después de la fecha del respaldo vuelve a quedar borrado.
+    from .retencion import reaplicar_supresiones
+    reaplicar_supresiones(db, datetime.fromisoformat(volcado["fecha"]))
     # Sin id_usuario: la cuenta que restaura puede no existir en el estado restaurado.
     auditoria.registrar(db, "RESTAURAR_RESPALDO", actor=actor, ip=ip,
                         descripcion=f"Restauración de {respaldo.archivo} (fecha {volcado['fecha']})", commit=False)

@@ -3,6 +3,7 @@ import base64
 import logging
 import os
 import secrets
+from datetime import date
 from functools import lru_cache
 from pathlib import Path
 
@@ -28,12 +29,36 @@ class Settings(BaseSettings):
     umbral_biometrico: float = 0.5
     max_intentos_biometricos: int = 5
     max_intentos_login: int = 5
+    # Tras `max_intentos_biometricos` rostros que no coinciden con un documento, se pausa ese documento (minutos).
+    minutos_pausa_biometrica: int = 30
+    # Máximo de peticiones por dirección IP (ventanas en servicios/limites.py y en cada ruta).
+    limite_identificacion_ip: int = 30  # en 15 minutos
+    limite_inscripcion_ip: int = 20  # en 1 hora
+    limite_login_ip: int = 20  # en 15 minutos
+    limite_verificar_ip: int = 60  # en 1 minuto
+    # Detrás de un proxy (Render), la IP del ciudadano llega en X-Forwarded-For; sin esto todos tendrían la del proxy.
+    confiar_x_forwarded_for: bool = False
+    # Documentación interactiva de la API (/docs). Apagada por defecto: en producción no debe ser pública.
+    documentacion_api: bool = False
 
     # Cédula: la foto impresa suele ser vieja y pequeña, por eso el umbral es más tolerante que el del rostro.
     umbral_cedula: float = 0.6
-    # Lee el número de la cédula con Tesseract. Se puede desactivar en desarrollo si no está instalado.
+    # Lee la cédula con Tesseract (número, nombres, apellidos y fecha de nacimiento) y exige que coincidan con lo
+    # escrito. Se puede desactivar en desarrollo si Tesseract no está instalado.
     verificar_numero_cedula: bool = True
     max_mb_cedula: int = 5
+    # Plazo para completar la inscripción. Mientras está en curso no se guarda nada; si vence, se descarta.
+    minutos_inscripcion: int = 30
+
+    # Último día del piloto (Decreto 1377 art. 11). Al terminar ese día se borran las plantillas biométricas
+    # y se cierran las inscripciones. Formato AAAA-MM-DD en VOTOSEGURO_FIN_PILOTO.
+    fin_piloto: date = date(2027, 12, 30)
+
+    # Responsables del tratamiento (Ley 1581 art. 12 lit. d): aparecen en la autorización y en "Mis datos".
+    responsables: str = "Nicolas Marcelo Rubio, Julieth Camila Riveros Acevedo y Mario Mendoza Huertas"
+    correo_privacidad: str = "nicololmomo123@gmail.com"
+    direccion_responsables: str = "Carrera 104 # 16-28, Bogotá"
+    telefono_responsables: str = "322 813 0839"
 
     # Duración de los tokens (minutos).
     minutos_token_flujo: int = 15
@@ -43,11 +68,16 @@ class Settings(BaseSettings):
     # Tareas automáticas.
     segundos_ciclo_monitor: int = 20
     minutos_respaldo_automatico: int = 60
+    # Plazos de conservación prometidos en la Política de Tratamiento (servicios/politica.py, numeral 6).
+    dias_respaldo: int = 7  # los respaldos se borran a los 7 días
+    dias_reclamacion: int = 30  # la participación se desvincula 30 días después del cierre
+    anios_prueba_autorizacion: int = 3  # la prueba seudonimizada se borra 3 años después de la supresión
+    dias_bitacora_post_piloto: int = 365  # la bitácora se depura un año después del fin del piloto
     directorio_respaldos: Path = BASE_DIR / "respaldos"
     directorio_logs: Path = BASE_DIR / "logs"
 
     # Datos iniciales.
-    admin_correo: str = "admin@votoseguro.gov.co"
+    admin_correo: str = "admin@votoseguro.local"
     admin_password: str = "Admin2026*"
     sembrar_datos_demo: bool = True
 

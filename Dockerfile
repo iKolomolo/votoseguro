@@ -6,14 +6,17 @@ COPY frontend/ ./
 RUN npm run build
 
 FROM python:3.13-slim
-# Tesseract lee el número de la cédula (OCR). El idioma inglés que trae por defecto basta para los dígitos.
-RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr \
+# Tesseract lee la cédula (OCR): número, nombres, apellidos y fecha. El paquete en español lee la Ñ y las tildes.
+RUN apt-get update && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-spa \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /app/backend
 COPY backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY backend/app ./app
 COPY --from=frontend /app/frontend/dist /app/frontend/dist
+# Los archivos temporales (Tesseract escribe la foto de la cédula un instante para leerla) van a /dev/shm, que está
+# en la memoria RAM: la foto nunca se escribe en disco. Si /dev/shm no existiera, Python usa la carpeta temporal normal.
+ENV TMPDIR=/dev/shm
 EXPOSE 8000
 # Render asigna el puerto en $PORT; en local se usa 8000.
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

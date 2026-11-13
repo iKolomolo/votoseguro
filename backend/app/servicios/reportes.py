@@ -39,7 +39,7 @@ def pdf_resultados(datos: dict, generado_por: str) -> bytes:
     pdf.set_text_color(255, 255, 255)
     pdf.set_xy(15, 9)
     pdf.set_font("Helvetica", "B", 9)
-    pdf.cell(0, 5, "VOTOSEGURO COLOMBIA - REPORTE OFICIAL DE RESULTADOS")
+    pdf.cell(0, 5, "VOTOSEGURO - REPORTE DE RESULTADOS (SIMULACION ACADEMICA, SIN EFECTOS ELECTORALES)")
     pdf.set_xy(15, 15)
     pdf.set_font("Helvetica", "B", 16)
     pdf.cell(0, 8, _latin1(e["nombre"]))

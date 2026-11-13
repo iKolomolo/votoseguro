@@ -46,6 +46,34 @@ def crear_esquema() -> None:
     from . import models  # noqa: F401  (registra las tablas)
 
     Base.metadata.create_all(engine)
+    with engine.begin() as conn:
+        # Tablas de versiones anteriores. La imagen de la cédula ya no se conserva (Decreto 1377 arts. 4 y 11) y la
+        # inscripción ya no deja datos a medias: ambas se eliminan con todo su contenido.
+        conn.execute(text("DROP TABLE IF EXISTS documento_identidad"))
+        conn.execute(text("DROP TABLE IF EXISTS cotejo_pendiente"))
+    _agregar_columnas()
     if engine.dialect.name == "postgresql":
         with engine.begin() as conn:
             conn.execute(text(_TRIGGER_VOTO))
+
+
+# Columnas nuevas en tablas que ya existían: create_all no las agrega, así que se agregan aquí.
+_COLUMNAS_NUEVAS = [
+    ("verificacion_documento", "hash_reverso", "VARCHAR(64)"),
+    ("verificacion_documento", "datos_coinciden", "BOOLEAN"),
+    ("autorizacion", "suprimida_en", "TIMESTAMP WITH TIME ZONE"),
+]
+
+
+def _agregar_columnas() -> None:
+    from sqlalchemy import inspect
+
+    inspector = inspect(engine)
+    tablas = set(inspector.get_table_names())
+    with engine.begin() as conn:
+        for tabla, columna, tipo in _COLUMNAS_NUEVAS:
+            if tabla in tablas and columna not in {c["name"] for c in inspector.get_columns(tabla)}:
+                conn.execute(text(f"ALTER TABLE {tabla} ADD COLUMN {columna} {tipo}"))
+        # La participación se desvincula del votante al cumplir su plazo: id_votante pasa a admitir NULL.
+        if engine.dialect.name == "postgresql" and "participacion" in tablas:
+            conn.execute(text("ALTER TABLE participacion ALTER COLUMN id_votante DROP NOT NULL"))

@@ -10,7 +10,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from .config import get_master_key
+from .config import get_master_key, get_settings
 from .crypto.ecc import sub_clave
 from .db import get_db
 from .models import Usuario, Votante
@@ -107,4 +107,6 @@ SuperAdmin = Annotated[Usuario, Depends(requiere_rol(ROL_SUPERADMIN))]
 
 
 def ip_cliente(request: Request) -> str | None:
+    if get_settings().confiar_x_forwarded_for and (reenviada := request.headers.get("x-forwarded-for")):
+        return reenviada.split(",")[0].strip()[:45]
     return request.client.host if request.client else None

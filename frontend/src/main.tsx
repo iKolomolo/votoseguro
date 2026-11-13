@@ -11,6 +11,8 @@ import { Votaciones } from "./paginas/admin/Votaciones";
 import { Inscripcion } from "./paginas/registraduria/Inscripcion";
 import { Biometria, Elegibilidad, Identificacion } from "./paginas/votante/Identificacion";
 import { Bienvenida } from "./paginas/votante/Inicio";
+import { MisDatos } from "./paginas/votante/MisDatos";
+import { Privacidad } from "./paginas/votante/Privacidad";
 import { Bloqueado, ResultadosPublicos, VerificarComprobante } from "./paginas/votante/Publico";
 import { Candidatos, ComprobanteVoto, Confirmar, Elecciones, Gracias } from "./paginas/votante/Votacion";
 import { ProveedorAdmin, ProveedorVotante } from "./sesion";
@@ -33,6 +35,8 @@ createRoot(document.getElementById("root")!).render(
             <Route path="/comprobante" element={<ComprobanteVoto />} />
             <Route path="/gracias" element={<Gracias />} />
             <Route path="/verificar" element={<VerificarComprobante />} />
+            <Route path="/mis-datos" element={<MisDatos />} />
+            <Route path="/privacidad" element={<Privacidad />} />
             <Route path="/resultados/:id" element={<ResultadosPublicos />} />
 
             <Route path="/admin" element={<LoginAdmin />} />

@@ -1,7 +1,7 @@
-import { Activity, CalendarPlus, CircleX, Server, Users, Vote } from "lucide-react";
+import { Activity, CalendarClock, CalendarPlus, CircleX, Server, Users, Vote } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { fechaHora, miles, soloFecha, soloHora, type Eleccion, type EstadoServicio, type RegistroAuditoria } from "../../api";
+import { fechaDia, fechaHora, miles, soloFecha, soloHora, type Eleccion, type EstadoServicio, type RegistroAuditoria } from "../../api";
 import { Anillo } from "../../componentes/Graficos";
 import { Alerta, Cargando, EccBadge } from "../../componentes/ui";
 import { useAdmin } from "../../sesion";
@@ -16,6 +16,8 @@ interface Tablero {
   disponibilidad: number | null;
   sistema: EstadoServicio[];
   actividad: RegistroAuditoria[];
+  fin_piloto: string;
+  dias_piloto: number;
 }
 
 function StatCard({ titulo, valor, detalle, icono, fondo }: {
@@ -70,7 +72,16 @@ export function Dashboard() {
           </span>
         )} />
       <main className="flex flex-col gap-4 p-4 md:p-6">
-        <EccBadge />
+        <div className="flex flex-wrap items-center gap-2">
+          <EccBadge />
+          {datos && (
+            <span className={`inline-flex w-fit items-center gap-1.5 rounded-full border-[1.5px] px-2.5 py-1 text-[11px] font-semibold ${
+              datos.dias_piloto <= 15 ? "border-alerta-texto/40 bg-alerta-bg text-alerta-texto" : "border-linea bg-white text-tinta-2"}`}>
+              <CalendarClock className="size-3" /> Fin del piloto: {fechaDia(datos.fin_piloto)} · {datos.dias_piloto} días
+              {datos.dias_piloto <= 15 && " — las plantillas biométricas se borrarán"}
+            </span>
+          )}
+        </div>
         {error && <Alerta tipo="error" titulo="Error">{error}</Alerta>}
         {!datos && !error && <Cargando />}
         {datos && (

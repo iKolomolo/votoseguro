@@ -1,7 +1,9 @@
 // Captura del rostro con la cámara web y extracción del descriptor facial (face-api.js, 128 valores).
-// Incluye una prueba de vida: el usuario cumple retos elegidos al azar (girar la cabeza, sonreír), lo que
-// dificulta usar una foto impresa o un video grabado. No se usa el parpadeo: el modelo de 68 puntos de face-api
-// casi no distingue el ojo cerrado y el reto fallaba con frecuencia.
+// Incluye una prueba de vida: el usuario cumple los retos que eligió al azar el servidor (girar la cabeza, sonreír,
+// abrir la boca), lo que impide usar una foto impresa: al inclinar una foto sus proporciones no cambian. Además
+// de comprobarlo aquí, se envían al servidor los 68 puntos faciales de frente y de cada reto, y el servidor lo
+// comprueba de nuevo (backend/app/servicios/vida.py). No se usa el parpadeo: el modelo de 68 puntos casi no
+// distingue el ojo cerrado y el reto fallaba con frecuencia.
 import { Camera, CameraOff, Loader2, UserRound } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -13,20 +15,35 @@ export type EstadoCaptura = "cargando" | "sin-camara" | "listo" | "capturando";
 const MUESTRAS = 5;
 const TIEMPO_ENCUADRE_MS = 10000;
 const TIEMPO_RETO_MS = 8000;
-const RETOS_POR_VERIFICACION = 2;
 // Los umbrales son relativos a la referencia de cada persona mirando de frente, no valores absolutos.
 const GIRO_MINIMO = 0.1; // desplazamiento de la nariz, como fracción del ancho de la cara
 const FRONTAL_MAXIMO = 0.15;
-const SONRISA_MINIMA = 0.7; // probabilidad de "happy" del modelo de expresiones
-const BOCA_SONRISA = 1.12; // o boca un 12 % más ancha que en reposo
+const BOCA_SONRISA = 1.1; // boca un 10 % más ancha que en reposo
+const APERTURA_MINIMA = 0.4; // alto / ancho de la boca por dentro
+const APERTURA_AUMENTO = 0.25;
 const MISMA_PERSONA = 0.5; // distancia euclidiana máxima entre el rostro inicial y el final
 
-type Reto = "izquierda" | "derecha" | "sonreir";
+export type Reto = "izquierda" | "derecha" | "sonreir" | "boca";
 const RETOS: Record<Reto, string> = {
   izquierda: "Gire la cabeza hacia su izquierda",
   derecha: "Gire la cabeza hacia su derecha",
-  sonreir: "Sonría",
+  sonreir: "Sonría ampliamente",
+  boca: "Abra la boca",
 };
+const RETOS_POR_VERIFICACION = 3;
+
+/** Retos que el servidor puso en el token del paso (el servidor solo acepta esos, en ese orden). */
+export function retosDelToken(token: string | null | undefined): Reto[] {
+  try {
+    const carga = JSON.parse(atob(token!.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return (carga.retos ?? []).filter((r: string): r is Reto => r in RETOS);
+  } catch {
+    return [];
+  }
+}
+
+type Puntos = [number, number][];
+const aPuntos = (p: Punto[]): Puntos => p.map(({ x, y }) => [Math.round(x * 10) / 10, Math.round(y * 10) / 10]);
 
 let modelos: Promise<FaceApi> | null = null;
 
@@ -37,7 +54,6 @@ export function cargarModelos(): Promise<FaceApi> {
       faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
       faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
       faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-      faceapi.nets.faceExpressionNet.loadFromUri("/models"),
     ]);
     return faceapi;
   })();
@@ -48,15 +64,16 @@ export function cargarModelos(): Promise<FaceApi> {
 const dist = (a: Punto, b: Punto) => Math.hypot(a.x - b.x, a.y - b.y);
 
 // Medidas del rostro a partir de los 68 puntos: giro (posición de la nariz entre los extremos de la
-// mandíbula; 0.5 es de frente) y ancho de la boca relativo al ancho de la cara.
+// mandíbula; 0.5 es de frente), ancho de la boca relativo al ancho de la cara y apertura de la boca (alto / ancho
+// por dentro de los labios). Son las mismas que recalcula el servidor.
 function medidas(p: Punto[]) {
   return {
     giro: (p[30].x - p[0].x) / (p[16].x - p[0].x),
     boca: dist(p[48], p[54]) / dist(p[0], p[16]),
+    apertura: dist(p[62], p[66]) / Math.max(dist(p[60], p[64]), 1e-6),
   };
 }
 
-const mediana = (v: number[]) => [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)];
 const siguienteCuadro = () => new Promise((res) => setTimeout(res, 0));
 
 function elegirRetos(): Reto[] {
@@ -68,6 +85,8 @@ function elegirRetos(): Reto[] {
 
 export interface ResultadoCaptura {
   descriptor: number[];
+  /** Prueba de vida para el servidor: puntos de frente y de cada reto, en el orden pedido. */
+  vida: { frente: Puntos; retos: Puntos[] };
 }
 
 export function useCapturaFacial() {
@@ -125,7 +144,7 @@ export function useCapturaFacial() {
     };
   }, []);
 
-  const capturar = useCallback(async (): Promise<ResultadoCaptura> => {
+  const capturar = useCallback(async (retosPedidos: Reto[] = []): Promise<ResultadoCaptura> => {
     const faceapi = await cargarModelos();
     const v = video.current;
     if (!v) throw new Error("La cámara no está disponible");
@@ -140,6 +159,7 @@ export function useCapturaFacial() {
     const encuadrar = async (cantidad: number) => {
       const descriptores: Float32Array[] = [];
       const base: ReturnType<typeof medidas>[] = [];
+      let puntos: Puntos = [];
       const inicio = performance.now();
       while (descriptores.length < cantidad) {
         if (!activo.current) throw new Error("La cámara se detuvo");
@@ -152,50 +172,50 @@ export function useCapturaFacial() {
           if (Math.abs(m.giro - 0.5) < FRONTAL_MAXIMO) {
             descriptores.push(r.descriptor);
             base.push(m);
+            puntos = aPuntos(r.landmarks.positions);
           }
         }
         await siguienteCuadro();
       }
-      return { descriptores, base };
+      return { descriptores, base, puntos };
     };
 
-    const cumplirReto = async (reto: Reto, ref: ReturnType<typeof medidas>) => {
+    // Devuelve los puntos del cuadro en que se cumplió el reto, o null si no se cumplió a tiempo.
+    const cumplirReto = async (reto: Reto, ref: ReturnType<typeof medidas>): Promise<Puntos | null> => {
       const inicio = performance.now();
       while (performance.now() - inicio < TIEMPO_RETO_MS) {
-        if (!activo.current) return false;
-        if (reto === "sonreir") {
-          const r = await faceapi.detectSingleFace(v, rapidas).withFaceLandmarks().withFaceExpressions();
-          if (r && (r.expressions.happy > SONRISA_MINIMA || medidas(r.landmarks.positions).boca > ref.boca * BOCA_SONRISA)) {
-            return true;
-          }
-        } else {
-          const r = await faceapi.detectSingleFace(v, rapidas).withFaceLandmarks();
-          if (r) {
-            const m = medidas(r.landmarks.positions);
-            // Las coordenadas son de la imagen sin espejo: la izquierda de la persona queda a la derecha.
-            if (reto === "izquierda" && m.giro - ref.giro > GIRO_MINIMO) return true;
-            if (reto === "derecha" && ref.giro - m.giro > GIRO_MINIMO) return true;
-          }
+        if (!activo.current) return null;
+        const r = await faceapi.detectSingleFace(v, rapidas).withFaceLandmarks();
+        if (r) {
+          const m = medidas(r.landmarks.positions);
+          // Las coordenadas son de la imagen sin espejo: la izquierda de la persona queda a la derecha.
+          const cumple =
+            (reto === "izquierda" && m.giro - ref.giro > GIRO_MINIMO) ||
+            (reto === "derecha" && ref.giro - m.giro > GIRO_MINIMO) ||
+            (reto === "sonreir" && m.boca > ref.boca * BOCA_SONRISA) ||
+            (reto === "boca" && m.apertura > APERTURA_MINIMA && m.apertura - ref.apertura > APERTURA_AUMENTO);
+          if (cumple) return aPuntos(r.landmarks.positions);
         }
         await siguienteCuadro();
       }
-      return false;
+      return null;
     };
 
     try {
       setInstruccion("Mire de frente a la cámara…");
-      const { descriptores, base } = await encuadrar(MUESTRAS);
-      const ref = {
-        giro: mediana(base.map((m) => m.giro)),
-        boca: mediana(base.map((m) => m.boca)),
-      };
+      const { descriptores, puntos: frente } = await encuadrar(MUESTRAS);
+      // La referencia es el mismo cuadro de frente que recibe el servidor, para medir igual que él.
+      const ref = medidas(frente.map(([x, y]) => ({ x, y })));
 
-      const retos = elegirRetos();
+      const retos = retosPedidos.length ? retosPedidos : elegirRetos();
+      const puntosRetos: Puntos[] = [];
       for (const [i, reto] of retos.entries()) {
         setInstruccion(`Prueba ${i + 1} de ${retos.length}: ${RETOS[reto]}`);
-        if (!(await cumplirReto(reto, ref))) {
+        const puntos = await cumplirReto(reto, ref);
+        if (!puntos) {
           throw new Error(`No se detectó la acción solicitada (${RETOS[reto].toLowerCase()}). Intente de nuevo.`);
         }
+        puntosRetos.push(puntos);
         setInstruccion("¡Bien! Vuelva a mirar de frente…");
         await new Promise((res) => setTimeout(res, 800));
       }
@@ -208,7 +228,7 @@ export function useCapturaFacial() {
         throw new Error("El rostro cambió durante la verificación. Intente de nuevo.");
       }
       setInstruccion("Rostro capturado");
-      return { descriptor: promedio };
+      return { descriptor: promedio, vida: { frente, retos: puntosRetos } };
     } catch (e) {
       if (activo.current) setInstruccion("Presione «Iniciar verificación» para intentarlo de nuevo.");
       throw e;

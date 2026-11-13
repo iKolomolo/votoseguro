@@ -17,12 +17,15 @@ os.environ["VOTOSEGURO_MASTER_KEY"] = base64.b64encode(secrets.token_bytes(32)).
 os.environ["VOTOSEGURO_DIRECTORIO_RESPALDOS"] = str(_tmp / "respaldos")
 os.environ["VOTOSEGURO_DIRECTORIO_LOGS"] = str(_tmp / "logs")
 os.environ["VOTOSEGURO_SEMBRAR_DATOS_DEMO"] = "true"
+# Todas las pruebas llegan desde la misma IP ("testclient"): límites altos por IP. test_limites prueba los reales.
+for _limite in ("IDENTIFICACION", "INSCRIPCION", "LOGIN", "VERIFICAR"):
+    os.environ[f"VOTOSEGURO_LIMITE_{_limite}_IP"] = "100000"
 
 from fastapi.testclient import TestClient  # noqa: E402
 
 from app.main import app  # noqa: E402
 
-ADMIN = {"correo": "admin@votoseguro.gov.co", "password": "Admin2026*"}
+ADMIN = {"correo": "admin@votoseguro.local", "password": "Admin2026*"}
 
 
 @pytest.fixture(scope="session")
@@ -40,12 +43,12 @@ def admin(cliente):
 
 @pytest.fixture(scope="session", autouse=True)
 def ocr_simulado():
-    """Las pruebas no dependen de Tesseract: la "foto" de la cédula lleva el número en un metadato PNG."""
+    """Las pruebas no dependen de Tesseract: la "foto" de la cédula lleva su texto impreso en un metadato PNG."""
     from app.servicios import documento
 
-    def leer_numeros(datos):
-        return {documento.normalizar(documento.abrir(datos).info.get("numero", ""))} - {""}
+    def leer_texto(datos):
+        return documento.abrir(datos).info.get("texto", "")
 
     with pytest.MonkeyPatch.context() as mp:
-        mp.setattr(documento, "leer_numeros", leer_numeros)
+        mp.setattr(documento, "leer_texto", leer_texto)
         yield

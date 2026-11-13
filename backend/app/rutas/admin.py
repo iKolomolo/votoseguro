@@ -3,16 +3,16 @@ import time
 from datetime import UTC, datetime
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, text
 
 from ..config import get_settings
-from ..models import Auditoria, Biometria, DocumentoIdentidad, Eleccion, Respaldo, Rol, Usuario, Votante
+from ..models import Auditoria, Biometria, Eleccion, Respaldo, Rol, Usuario, VerificacionDocumento, Votante
 from ..seguridad import (
     DB, Gestor, SuperAdmin, UsuarioActual, crear_token, hash_password, ip_cliente, verificar_password,
 )
-from ..servicios import auditoria, documento, monitor, respaldos
+from ..servicios import auditoria, autorizacion, monitor, respaldos, retencion, limites
 from ..servicios.consultas import campo_persona, eleccion_dict, total_habilitados, total_participacion
 from ..servicios.elecciones import estado_calculado
 
@@ -31,7 +31,7 @@ class Login(BaseModel):
     password: str = Field(max_length=200)
 
 
-@router.post("/login")
+@router.post("/login", dependencies=[limites.por_ip("login", "limite_login_ip", 900)])
 def login(datos: Login, db: DB, request: Request):
     ip = ip_cliente(request)
     usuario = db.scalar(select(Usuario).where(Usuario.correo == datos.correo.strip().lower()))
@@ -200,6 +200,8 @@ def dashboard(_: UsuarioActual, db: DB):
         "disponibilidad": monitor.disponibilidad_ultima_hora(),
         "sistema": _estado_sistema(db),
         "actividad": _actividad(db, 5),
+        "fin_piloto": get_settings().fin_piloto.isoformat(),
+        "dias_piloto": retencion.dias_restantes(),
     }
 
 
@@ -266,7 +268,8 @@ def _enmascarar(documento: str) -> str:
 @router.get("/votantes")
 def listar_votantes(_: UsuarioActual, db: DB):
     con_biometria = set(db.scalars(select(Biometria.id_persona).where(Biometria.estado == "activa")))
-    con_cedula = set(db.scalars(select(DocumentoIdentidad.id_persona)))
+    con_cedula = set(db.scalars(select(VerificacionDocumento.id_persona).where(
+        VerificacionDocumento.resultado == "verificado")))
     salida = []
     for v in db.scalars(select(Votante).order_by(Votante.id_votante.desc())):
         p = v.persona
@@ -306,26 +309,45 @@ def revocar_biometria(id_votante: int, usuario: Gestor, db: DB, request: Request
     votante = db.get(Votante, id_votante)
     if votante is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Votante no encontrado")
-    # También se borra la cédula: al volver a enrolarse debe presentarla de nuevo.
-    for modelo in (Biometria, DocumentoIdentidad):
-        fila = db.scalar(select(modelo).where(modelo.id_persona == votante.id_persona))
-        if fila is not None:
-            db.delete(fila)
+    # También se borra la evidencia de la cédula: al volver a enrolarse debe presentarla de nuevo.
+    retencion.suprimir_biometria(db, votante.id_persona)
+    autorizacion.revocar_biometria(db, votante.id_persona)
     auditoria.registrar(db, "REVOCAR_BIOMETRIA", actor=usuario.correo, id_usuario=usuario.id_usuario,
                         ip=ip_cliente(request), descripcion=f"Votante #{id_votante}", commit=False)
     db.commit()
     return {"ok": True}
 
 
-@router.get("/votantes/{id_votante}/cedula")
-def ver_cedula(id_votante: int, usuario: SuperAdmin, db: DB, request: Request):
-    """Imagen de la cédula presentada al enrolarse. Solo el superadministrador, y cada consulta queda auditada."""
+@router.delete("/votantes/{id_votante}")
+def suprimir_votante(id_votante: int, usuario: SuperAdmin, db: DB, request: Request):
+    """Supresión a solicitud del titular (Ley 1581, arts. 8 lit. e y 15): borra todos sus datos personales. Solo se
+    aplaza si votó en una elección abierta o cerrada hace menos de 30 días (voto único, Decreto 1377 art. 9)."""
+    votante = db.get(Votante, id_votante)
+    if votante is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Votante no encontrado")
+    try:
+        retencion.suprimir_titular(db, votante)
+    except retencion.SupresionAplazada as e:
+        db.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, f"No se puede borrar todavía. {e}") from None
+    auditoria.registrar(db, "SUPRIMIR_TITULAR", actor=usuario.correo, id_usuario=usuario.id_usuario,
+                        ip=ip_cliente(request), commit=False,
+                        descripcion=f"Votante #{id_votante}: datos personales suprimidos a solicitud del titular")
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/votantes/{id_votante}/verificacion")
+def evidencia_verificacion(id_votante: int, _: UsuarioActual, db: DB):
+    """Evidencia de la verificación de la cédula. La imagen no se conserva, así que solo hay huella y resultados."""
     votante = db.get(Votante, id_votante)
     fila = None if votante is None else db.scalar(
-        select(DocumentoIdentidad).where(DocumentoIdentidad.id_persona == votante.id_persona))
+        select(VerificacionDocumento).where(VerificacionDocumento.id_persona == votante.id_persona))
     if fila is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "El votante no tiene cédula registrada")
-    imagen, _ = documento.descifrar(db, fila)
-    auditoria.registrar(db, "VER_CEDULA", actor=usuario.correo, id_usuario=usuario.id_usuario,
-                        ip=ip_cliente(request), descripcion=f"Votante #{id_votante}")
-    return Response(imagen, media_type=fila.imagen_tipo, headers={"Cache-Control": "no-store"})
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "El votante no tiene verificación de cédula")
+    return {
+        "resultado": fila.resultado, "fecha": fila.fecha.isoformat(), "numero_coincide": fila.numero_coincide,
+        "datos_coinciden": fila.datos_coinciden, "hash_reverso": fila.hash_reverso,
+        "distancia_cotejo": fila.distancia_cotejo, "umbral_cotejo": get_settings().umbral_cedula,
+        "hash_imagen": fila.hash_imagen, "version": fila.version,
+    }

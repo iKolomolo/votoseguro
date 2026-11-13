@@ -10,7 +10,7 @@ Cambios respecto al MER, justificados en el README:
 from datetime import UTC, datetime
 
 from sqlalchemy import (
-    Boolean, DateTime, ForeignKey, Integer, LargeBinary, String, Text, TypeDecorator, UniqueConstraint, func,
+    Boolean, DateTime, Float, ForeignKey, Integer, LargeBinary, String, Text, TypeDecorator, UniqueConstraint, func,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -95,17 +95,60 @@ class Biometria(Base):
     estado: Mapped[str] = mapped_column(String(20), default="activa")
 
 
-class DocumentoIdentidad(Base):
-    """Foto de la cédula presentada al enrolarse. La imagen y el descriptor de su rostro van cifrados (ECIES)."""
-    __tablename__ = "documento_identidad"
-    id_documento: Mapped[int] = mapped_column(primary_key=True)
+class VerificacionDocumento(Base):
+    """Evidencia de que se verificó la cédula en la inscripción. No guarda las imágenes (Decreto 1377 art. 4): solo
+    sus huellas SHA-256 (frente y reverso), si el número y los datos leídos coincidieron y la distancia del cotejo
+    facial."""
+    __tablename__ = "verificacion_documento"
+    id_verificacion: Mapped[int] = mapped_column(primary_key=True)
     id_persona: Mapped[int] = mapped_column(ForeignKey("persona.id_persona"), unique=True)
-    imagen: Mapped[bytes] = mapped_column(LargeBinary)
-    imagen_tipo: Mapped[str] = mapped_column(String(40))
-    descriptor: Mapped[bytes] = mapped_column(LargeBinary)
-    # pendiente (número leído, falta comparar el rostro) | verificado
-    estado: Mapped[str] = mapped_column(String(20), default="pendiente")
-    fecha_registro: Mapped[datetime] = mapped_column(Fecha, server_default=func.now())
+    hash_imagen: Mapped[str] = mapped_column(String(64))
+    hash_reverso: Mapped[str | None] = mapped_column(String(64))
+    # None cuando el OCR está desactivado por configuración.
+    numero_coincide: Mapped[bool | None] = mapped_column(Boolean)
+    # Nombres, apellidos y fecha de nacimiento confirmados con la cédula.
+    datos_coinciden: Mapped[bool | None] = mapped_column(Boolean)
+    distancia_cotejo: Mapped[float | None] = mapped_column(Float)
+    # pendiente (cédula leída, falta el rostro) | verificado
+    resultado: Mapped[str] = mapped_column(String(20), default="pendiente")
+    fecha: Mapped[datetime] = mapped_column(Fecha)
+    version: Mapped[str] = mapped_column(String(20))
+
+
+class Autorizacion(Base):
+    """Prueba de la autorización del titular (Decreto 1377 de 2013, art. 8): qué versión del texto aceptó, cuándo y
+    qué casillas marcó. documento_indice permite conservar la prueba seudonimizada si se suprime a la persona."""
+    __tablename__ = "autorizacion"
+    id_autorizacion: Mapped[int] = mapped_column(primary_key=True)
+    id_persona: Mapped[int | None] = mapped_column(ForeignKey("persona.id_persona"))
+    documento_indice: Mapped[str] = mapped_column(String(64))
+    version_texto: Mapped[str] = mapped_column(String(10))
+    hash_texto: Mapped[str] = mapped_column(String(64))
+    acepto_datos: Mapped[bool] = mapped_column(Boolean)
+    acepto_biometria: Mapped[bool] = mapped_column(Boolean)
+    fecha: Mapped[datetime] = mapped_column(Fecha)
+    revocada_en: Mapped[datetime | None] = mapped_column(Fecha)
+    alcance_revocacion: Mapped[str | None] = mapped_column(String(20))
+    # Fecha en que se suprimieron los datos del titular: desde ahí la prueba queda seudonimizada (sin persona, solo
+    # el índice ciego) y se borra a los 3 años.
+    suprimida_en: Mapped[datetime | None] = mapped_column(Fecha)
+
+
+class Limite(Base):
+    """Contador de intentos con vencimiento (servicios/limites.py). La clave es un HMAC: sin IP ni documento."""
+    __tablename__ = "limite"
+    clave: Mapped[str] = mapped_column(String(64), primary_key=True)
+    contador: Mapped[int] = mapped_column(Integer, default=0)
+    vence: Mapped[datetime] = mapped_column(Fecha)
+
+
+class Supresion(Base):
+    """Titulares suprimidos (solo el índice ciego HMAC y la fecha), para volver a borrarlos si se restaura un
+    respaldo anterior a la supresión. No entra en los respaldos y se borra cuando caducan los respaldos."""
+    __tablename__ = "supresion"
+    id_supresion: Mapped[int] = mapped_column(primary_key=True)
+    documento_indice: Mapped[str] = mapped_column(String(64))
+    fecha: Mapped[datetime] = mapped_column(Fecha)
 
 
 class Votante(Base):
@@ -182,9 +225,22 @@ class Participacion(Base):
     __tablename__ = "participacion"
     __table_args__ = (UniqueConstraint("id_votante", "id_eleccion"),)
     id_participacion: Mapped[int] = mapped_column(primary_key=True)
-    id_votante: Mapped[int] = mapped_column(ForeignKey("votante.id_votante"))
+    # NULL cuando la participación ya se desvinculó del votante (cierre + plazo de reclamaciones, o supresión).
+    id_votante: Mapped[int | None] = mapped_column(ForeignKey("votante.id_votante"))
     id_eleccion: Mapped[int] = mapped_column(ForeignKey("eleccion.id_eleccion"))
     fecha_hora: Mapped[datetime] = mapped_column(Fecha)
+
+
+class Urna(Base):
+    """Votos de una elección abierta que todavía no se escriben en VOTO.
+
+    Es UNA sola fila por elección que se reescribe barajada en cada voto, así que ni el orden de las filas ni la hora
+    delatan quién emitió cada voto. Al cerrar la elección los votos pasan a VOTO en orden aleatorio, todos con la hora
+    del cierre, y la fila se borra. Contiene solo votos ya cifrados con la llave de la elección.
+    """
+    __tablename__ = "urna"
+    id_eleccion: Mapped[int] = mapped_column(ForeignKey("eleccion.id_eleccion"), primary_key=True)
+    votos: Mapped[str] = mapped_column(Text, default="[]")
 
 
 class Voto(Base):
@@ -193,7 +249,7 @@ class Voto(Base):
     id_voto: Mapped[str] = mapped_column(String(36), primary_key=True)
     id_eleccion: Mapped[int] = mapped_column(ForeignKey("eleccion.id_eleccion"))
     voto_cifrado: Mapped[bytes] = mapped_column(LargeBinary)
-    # Solo se guarda la hora (sin minutos) para dificultar correlaciones por tiempo con PARTICIPACION.
+    # Hora del cierre de la elección, igual para todos los votos: no dice cuándo votó cada persona.
     fecha_hora: Mapped[datetime] = mapped_column(Fecha)
     hash_voto: Mapped[str] = mapped_column(String(64))
     codigo_hash: Mapped[str] = mapped_column(String(64), unique=True)

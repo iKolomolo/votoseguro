@@ -1,18 +1,20 @@
 """Ciclo de vida de las elecciones, emisión del voto y escrutinio."""
+import base64
 import json
 import secrets
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from ..config import get_master_key
 from ..crypto import ecc, llavero
-from ..models import Eleccion, InscripcionCandidato, Participacion, Resultado, Votante, Voto
+from ..models import Eleccion, InscripcionCandidato, Participacion, Resultado, Urna, Votante, Voto
 from . import auditoria
 
 _ALFABETO = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # sin 0/O ni 1/I para evitar confusiones al leerlo
+_azar = secrets.SystemRandom()
 
 
 class ErrorVotacion(Exception):
@@ -43,7 +45,76 @@ def crear(db: Session, *, nombre: str, descripcion: str | None, tipo: str,
     eleccion.clave_privada = ecc.envolver_privada(privada, get_master_key(), _contexto_eleccion(eleccion))
     db.add(eleccion)
     db.flush()
+    db.add(Urna(id_eleccion=eleccion.id_eleccion, votos="[]"))
+    db.flush()
     return eleccion
+
+
+def migrar_anonimato(db: Session) -> int:
+    """Lleva al formato anónimo los votos guardados por versiones anteriores, que se escribían en VOTO en el mismo
+    orden que la participación y con su hora. Elecciones abiertas: sus votos pasan a la urna. Cerradas: se
+    reescriben en orden aleatorio con la hora del cierre. Participación: solo el día. Es idempotente."""
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(text("SET LOCAL votoseguro.restaurando = 'on'"))  # excepción del trigger de inmutabilidad
+    cambios = 0
+    for eleccion in db.scalars(select(Eleccion)):
+        votos = db.scalars(select(Voto).where(Voto.id_eleccion == eleccion.id_eleccion)).all()
+        if eleccion.estado != "finalizada":
+            urna = _urna(db, eleccion)
+            if urna is None:
+                urna = Urna(id_eleccion=eleccion.id_eleccion, votos="[]")
+                db.add(urna)
+            if votos:
+                pendientes = json.loads(urna.votos or "[]") + [
+                    {"cifrado": _b64(v.voto_cifrado), "hash": v.hash_voto, "codigo": v.codigo_hash,
+                     "firma": _b64(v.firma)} for v in votos]
+                _azar.shuffle(pendientes)
+                urna.votos = json.dumps(pendientes)
+        elif eleccion.fecha_cierre is not None and any(v.fecha_hora != eleccion.fecha_cierre for v in votos):
+            copias = [dict(id_voto=v.id_voto, id_eleccion=v.id_eleccion, voto_cifrado=v.voto_cifrado,
+                           fecha_hora=eleccion.fecha_cierre, hash_voto=v.hash_voto, codigo_hash=v.codigo_hash,
+                           firma=v.firma) for v in votos]
+            _azar.shuffle(copias)
+        else:
+            continue
+        if votos:
+            for v in votos:
+                db.delete(v)
+            db.flush()
+            if eleccion.estado == "finalizada":
+                db.add_all(Voto(**c) for c in copias)
+            cambios += len(votos)
+    for p in db.scalars(select(Participacion)):
+        dia = p.fecha_hora.replace(hour=0, minute=0, second=0, microsecond=0)
+        if p.fecha_hora != dia:
+            p.fecha_hora = dia
+            cambios += 1
+    db.commit()
+    return cambios
+
+
+def _urna(db: Session, eleccion: Eleccion, bloquear: bool = True) -> Urna | None:
+    consulta = select(Urna).where(Urna.id_eleccion == eleccion.id_eleccion)
+    return db.scalar(consulta.with_for_update() if bloquear else consulta)
+
+
+def _b64(datos: bytes) -> str:
+    return base64.b64encode(datos).decode()
+
+
+def _vaciar_urna(db: Session, eleccion: Eleccion, momento: datetime) -> None:
+    """Pasa los votos de la urna a VOTO en orden aleatorio y con la hora del cierre, y borra la urna."""
+    urna = _urna(db, eleccion)
+    if urna is None:
+        return
+    votos = json.loads(urna.votos)
+    _azar.shuffle(votos)
+    for v in votos:
+        db.add(Voto(id_voto=str(uuid.uuid4()), id_eleccion=eleccion.id_eleccion,
+                    voto_cifrado=base64.b64decode(v["cifrado"]), fecha_hora=momento, hash_voto=v["hash"],
+                    codigo_hash=v["codigo"], firma=base64.b64decode(v["firma"])))
+    db.delete(urna)
+    db.flush()
 
 
 def estado_calculado(eleccion: Eleccion, momento: datetime | None = None) -> str:
@@ -100,12 +171,19 @@ def emitir_voto(db: Session, votante: Votante, eleccion: Eleccion, id_candidato:
     codigo_hash = ecc.sha256_hex(codigo.encode())
     firma = ecc.firmar(llavero.privada(db, "firma"), _mensaje_firma(eleccion.codigo, hash_voto, codigo_hash))
 
-    db.add(Participacion(id_votante=votante.id_votante, id_eleccion=eleccion.id_eleccion, fecha_hora=momento))
-    db.add(Voto(
-        id_voto=str(uuid.uuid4()), id_eleccion=eleccion.id_eleccion, voto_cifrado=cifrado,
-        fecha_hora=momento.replace(minute=0, second=0, microsecond=0),
-        hash_voto=hash_voto, codigo_hash=codigo_hash, firma=firma,
-    ))
+    # La participación solo guarda el día: basta para el voto único y no dice a qué hora votó.
+    db.add(Participacion(id_votante=votante.id_votante, id_eleccion=eleccion.id_eleccion,
+                         fecha_hora=momento.replace(hour=0, minute=0, second=0, microsecond=0)))
+    # El voto va a la urna (una sola fila, barajada en cada voto), no a VOTO: así no queda en el mismo orden que
+    # la participación. Pasa a VOTO al cerrar la elección.
+    urna = _urna(db, eleccion)
+    if urna is None:
+        urna = Urna(id_eleccion=eleccion.id_eleccion, votos="[]")
+        db.add(urna)
+    votos = json.loads(urna.votos or "[]")
+    votos.append({"cifrado": _b64(cifrado), "hash": hash_voto, "codigo": codigo_hash, "firma": _b64(firma)})
+    _azar.shuffle(votos)
+    urna.votos = json.dumps(votos)
     db.commit()
     return {"codigo": codigo, "hash_voto": hash_voto, "eleccion": eleccion.nombre, "fecha": momento.isoformat()}
 
@@ -115,18 +193,28 @@ def _mensaje_firma(codigo_eleccion: str, hash_voto: str, codigo_hash: str) -> by
 
 
 def verificar_comprobante(db: Session, codigo: str) -> dict:
-    """Verificabilidad: confirma que el voto existe y está intacto, sin revelar el candidato."""
-    voto = db.scalar(select(Voto).where(Voto.codigo_hash == ecc.sha256_hex(codigo.strip().upper().encode())))
-    if voto is None:
-        return {"encontrado": False}
-    eleccion = db.get(Eleccion, voto.id_eleccion)
-    intacto = ecc.sha256_hex(voto.voto_cifrado) == voto.hash_voto
-    firma_ok = ecc.verificar_firma(
-        llavero.publica(db, "firma"), voto.firma, _mensaje_firma(eleccion.codigo, voto.hash_voto, voto.codigo_hash)
-    )
+    """Verificabilidad: confirma que el voto existe (en VOTO o, si la elección sigue abierta, en la urna) y está
+    intacto, sin revelar el candidato ni la hora en que se emitió."""
+    buscado = ecc.sha256_hex(codigo.strip().upper().encode())
+    voto = db.scalar(select(Voto).where(Voto.codigo_hash == buscado))
+    if voto is not None:
+        eleccion = db.get(Eleccion, voto.id_eleccion)
+        cifrado, hash_voto, firma = voto.voto_cifrado, voto.hash_voto, voto.firma
+    else:
+        eleccion = cifrado = None
+        for urna in db.scalars(select(Urna)):
+            v = next((v for v in json.loads(urna.votos) if v["codigo"] == buscado), None)
+            if v is not None:
+                eleccion = db.get(Eleccion, urna.id_eleccion)
+                cifrado, hash_voto, firma = base64.b64decode(v["cifrado"]), v["hash"], base64.b64decode(v["firma"])
+                break
+        if eleccion is None:
+            return {"encontrado": False}
+    intacto = ecc.sha256_hex(cifrado) == hash_voto
+    firma_ok = ecc.verificar_firma(llavero.publica(db, "firma"), firma,
+                                   _mensaje_firma(eleccion.codigo, hash_voto, buscado))
     return {
-        "encontrado": True, "eleccion": eleccion.nombre, "codigo_eleccion": eleccion.codigo,
-        "hora_aproximada": voto.fecha_hora.isoformat(), "hash_voto": voto.hash_voto,
+        "encontrado": True, "eleccion": eleccion.nombre, "codigo_eleccion": eleccion.codigo, "hash_voto": hash_voto,
         "integro": intacto, "firma_valida": firma_ok, "escrutado": eleccion.estado == "finalizada",
     }
 
@@ -142,6 +230,7 @@ def cerrar(db: Session, eleccion: Eleccion, *, actor: str, id_usuario: int | Non
     if momento < eleccion.fecha_fin:
         eleccion.fecha_fin = momento
 
+    _vaciar_urna(db, eleccion, momento)
     privada = ecc.desenvolver_privada(eleccion.clave_privada, get_master_key(), _contexto_eleccion(eleccion))
     firma_pub = llavero.publica(db, "firma")
     conteo = {i.id_candidato: 0 for i in eleccion.inscripciones if i.estado == "inscrito"}

@@ -154,6 +154,12 @@ export function soloFecha(iso: string) {
     .format(new Date(iso));
 }
 
+/** Fecha de calendario sin hora ("AAAA-MM-DD"): se formatea sin zona horaria para no correrla un día. */
+export function fechaDia(iso: string) {
+  const [anio, mes, dia] = iso.slice(0, 10).split("-");
+  return `${dia}/${mes}/${anio}`;
+}
+
 export function soloHora(iso: string) {
   return new Intl.DateTimeFormat("es-CO", { timeZone: ZONA, hour: "2-digit", minute: "2-digit", hour12: false })
     .format(new Date(iso));

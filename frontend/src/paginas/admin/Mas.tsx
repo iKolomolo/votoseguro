@@ -286,6 +286,11 @@ interface VotanteInfo {
   fecha_registro: string | null;
 }
 
+interface Evidencia {
+  resultado: string; fecha: string; numero_coincide: boolean | null; datos_coinciden: boolean | null;
+  distancia_cotejo: number | null; umbral_cotejo: number; hash_imagen: string; hash_reverso: string | null; version: string;
+}
+
 export function Votantes() {
   const { sesion } = useAdmin();
   const llamar = useApiAdmin();
@@ -293,7 +298,7 @@ export function Votantes() {
   const [filtro, setFiltro] = useState("");
   const gestor = puede(sesion?.usuario, "gestionar");
   const superadmin = puede(sesion?.usuario, "superadmin");
-  const [cedula, setCedula] = useState<{ nombre: string; url: string }>();
+  const [evidencia, setEvidencia] = useState<{ nombre: string; datos: Evidencia }>();
 
   async function cambiar(v: VotanteInfo, estado: string) {
     try { await llamar(`/api/admin/votantes/${v.id_votante}`, { metodo: "PATCH", cuerpo: { estado } }); recargar(); }
@@ -304,15 +309,19 @@ export function Votantes() {
     try { await llamar(`/api/admin/votantes/${v.id_votante}/revocar-biometria`, { metodo: "POST" }); recargar(); }
     catch (e) { alert(e instanceof Error ? e.message : "Error"); }
   }
-  async function verCedula(v: VotanteInfo) {
-    try {
-      const imagen = await llamar<Blob>(`/api/admin/votantes/${v.id_votante}/cedula`);
-      setCedula({ nombre: v.nombre, url: URL.createObjectURL(imagen) });
-    } catch (e) { alert(e instanceof Error ? e.message : "Error"); }
+  async function suprimir(v: VotanteInfo) {
+    if (!confirm(`¿Borrar TODOS los datos personales de ${v.nombre}?
+
+Use esta opción solo cuando el titular lo haya ` +
+      "pedido. Se borran su inscripción, su rostro y la evidencia de su cédula; solo queda la prueba de su autorización, " +
+      "sin nombre ni número legible. No se puede deshacer.")) return;
+    try { await llamar(`/api/admin/votantes/${v.id_votante}`, { metodo: "DELETE" }); recargar(); }
+    catch (e) { alert(e instanceof Error ? e.message : "Error"); }
   }
-  function cerrarCedula() {
-    if (cedula) URL.revokeObjectURL(cedula.url);
-    setCedula(undefined);
+  async function verEvidencia(v: VotanteInfo) {
+    try {
+      setEvidencia({ nombre: v.nombre, datos: await llamar<Evidencia>(`/api/admin/votantes/${v.id_votante}/verificacion`) });
+    } catch (e) { alert(e instanceof Error ? e.message : "Error"); }
   }
   const lista = datos?.filter((v) => (v.nombre + v.documento).toLowerCase().includes(filtro.toLowerCase()));
 
@@ -328,7 +337,7 @@ export function Votantes() {
             <p className="font-bold">{v.nombre}</p>
             <p className="font-mono text-xs text-tinta-2">{v.documento}</p>
             <p className="text-xs text-tinta-2">
-              Biometría: {v.biometria ? "registrada" : "pendiente"} · Cédula: {v.cedula ? "registrada" : "pendiente"}
+              Biometría: {v.biometria ? "registrada" : "pendiente"} · Cédula: {v.cedula ? "verificada" : "pendiente"}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -336,14 +345,37 @@ export function Votantes() {
               onChange={(e) => cambiar(v, e.target.value)}>
               {["habilitado", "no_habilitado", "sancionado", "bloqueado"].map((s) => <option key={s} value={s}>{s.replace("_", " ")}</option>)}
             </select>
-            {superadmin && v.cedula && <Boton variante="secundario" onClick={() => verCedula(v)}>Ver cédula</Boton>}
+            {v.cedula && <Boton variante="secundario" onClick={() => verEvidencia(v)}>Evidencia de verificación</Boton>}
             {gestor && v.biometria && <Boton variante="neutro" onClick={() => revocar(v)}>Revocar biometría</Boton>}
+            {superadmin && <Boton variante="peligro" onClick={() => suprimir(v)}>Borrar datos</Boton>}
           </div>
         </article>
       ))}
-      <Modal titulo={`Cédula de ${cedula?.nombre ?? ""}`} abierto={!!cedula} onCerrar={cerrarCedula}>
-        {cedula && <img src={cedula.url} alt={`Cédula de ${cedula.nombre}`} className="w-full rounded-lg" />}
-        <p className="pt-3 text-xs text-tinta-2">Esta consulta quedó registrada en la auditoría.</p>
+      <Modal titulo={`Verificación de ${evidencia?.nombre ?? ""}`} abierto={!!evidencia} onCerrar={() => setEvidencia(undefined)}>
+        {evidencia && (
+          <>
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+              <dt className="text-tinta-2">Resultado</dt><dd className="font-semibold">{evidencia.datos.resultado}</dd>
+              <dt className="text-tinta-2">Fecha</dt><dd>{fechaHora(evidencia.datos.fecha)}</dd>
+              <dt className="text-tinta-2">Número leído (OCR)</dt>
+              <dd>{evidencia.datos.numero_coincide === null ? "OCR desactivado" : evidencia.datos.numero_coincide ? "Coincide" : "No coincide"}</dd>
+              <dt className="text-tinta-2">Nombres, apellidos y fecha (OCR)</dt>
+              <dd>{evidencia.datos.datos_coinciden === null ? "No verificados (versión anterior u OCR desactivado)"
+                : evidencia.datos.datos_coinciden ? "Coinciden con la cédula" : "No coinciden"}</dd>
+              <dt className="text-tinta-2">Cotejo facial</dt>
+              <dd>{evidencia.datos.distancia_cotejo === null ? "—"
+                : `distancia ${evidencia.datos.distancia_cotejo.toFixed(3)} (umbral ${evidencia.datos.umbral_cotejo})`}</dd>
+              <dt className="text-tinta-2">Huella del frente</dt><dd className="font-mono text-[10px] break-all">{evidencia.datos.hash_imagen}</dd>
+              <dt className="text-tinta-2">Huella del reverso</dt>
+              <dd className="font-mono text-[10px] break-all">{evidencia.datos.hash_reverso ?? "—"}</dd>
+              <dt className="text-tinta-2">Procedimiento</dt><dd className="font-mono text-xs">{evidencia.datos.version}</dd>
+            </dl>
+            <p className="pt-3 text-xs text-tinta-2">
+              Las fotos de la cédula no se conservan (Decreto 1377 de 2013, arts. 4 y 11). Las huellas permiten
+              comprobar, si se presentan de nuevo las mismas fotos, que fueron las que se verificaron.
+            </p>
+          </>
+        )}
       </Modal>
     </Subpagina>
   );

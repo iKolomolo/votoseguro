@@ -1,6 +1,7 @@
 // Foto de la cédula: se toma con la cámara (trasera en el celular) o se sube un archivo. En el navegador se
 // reduce la imagen y se extrae el descriptor de la cara impresa con face-api, el mismo espacio de 128 valores
-// del rostro en vivo; el número lo lee el servidor con OCR sobre esta misma imagen.
+// del rostro en vivo; el número lo lee el servidor con OCR sobre esta misma imagen. Si el titular no autorizó sus
+// datos biométricos (conRostro = false), no se busca ni se extrae ningún rostro.
 import { Camera, CameraOff, ImageUp, Loader2, RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { cargarModelos } from "./CapturaFacial";
@@ -9,7 +10,7 @@ const LADO_MAXIMO = 1600;
 
 export interface FotoCedula {
   blob: Blob;
-  descriptor: number[];
+  descriptor: number[] | null;
 }
 
 /** Dibuja la fuente en un canvas de como máximo LADO_MAXIMO px por lado. */
@@ -22,7 +23,14 @@ function aCanvas(fuente: CanvasImageSource, ancho: number, alto: number) {
   return canvas;
 }
 
-async function procesar(canvas: HTMLCanvasElement): Promise<FotoCedula> {
+async function aJpeg(canvas: HTMLCanvasElement): Promise<Blob> {
+  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.92));
+  if (!blob) throw new Error("No fue posible preparar la imagen");
+  return blob;
+}
+
+async function procesar(canvas: HTMLCanvasElement, conRostro: boolean): Promise<FotoCedula> {
+  if (!conRostro) return { blob: await aJpeg(canvas), descriptor: null };
   const faceapi = await cargarModelos();
   // La cara de la cédula ocupa poco de la foto: se busca con una entrada grande y luego una intermedia.
   let rostro;
@@ -34,12 +42,12 @@ async function procesar(canvas: HTMLCanvasElement): Promise<FotoCedula> {
   if (!rostro) {
     throw new Error("No se encontró el rostro en la cédula. Tome la foto más cerca, de frente y sin reflejos.");
   }
-  const blob = await new Promise<Blob | null>((res) => canvas.toBlob(res, "image/jpeg", 0.92));
-  if (!blob) throw new Error("No fue posible preparar la imagen");
-  return { blob, descriptor: Array.from(rostro.descriptor) };
+  return { blob: await aJpeg(canvas), descriptor: Array.from(rostro.descriptor) };
 }
 
-export function CapturaDocumento({ onCambio }: { onCambio: (foto: FotoCedula | null) => void }) {
+export function CapturaDocumento({ onCambio, conRostro = true }: {
+  onCambio: (foto: FotoCedula | null) => void; conRostro?: boolean;
+}) {
   const [modo, setModo] = useState<"camara" | "archivo">("camara");
   const [vistaPrevia, setVistaPrevia] = useState<string>();
   const [procesando, setProcesando] = useState(false);
@@ -76,7 +84,7 @@ export function CapturaDocumento({ onCambio }: { onCambio: (foto: FotoCedula | n
     setError(undefined);
     setProcesando(true);
     try {
-      const foto = await procesar(canvas);
+      const foto = await procesar(canvas, conRostro);
       setVistaPrevia(URL.createObjectURL(foto.blob));
       onCambio(foto);
     } catch (e) {
@@ -149,7 +157,7 @@ export function CapturaDocumento({ onCambio }: { onCambio: (foto: FotoCedula | n
         )}
         {procesando && (
           <div role="status" className="absolute inset-0 flex items-center justify-center gap-2 bg-tinta/70 text-sm font-semibold text-white">
-            <Loader2 className="size-5 animate-spin" /> Buscando el rostro en la cédula…
+            <Loader2 className="size-5 animate-spin" /> {conRostro ? "Buscando el rostro en la cédula…" : "Preparando la imagen…"}
           </div>
         )}
       </div>

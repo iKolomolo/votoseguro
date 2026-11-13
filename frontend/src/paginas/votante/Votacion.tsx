@@ -47,6 +47,9 @@ export function Elecciones() {
       <ProgressSteps paso={4} />
       <main className="contenido flex flex-1 flex-col gap-4 p-5 md:p-8">
         <LockBadge />
+        {flujo.nombre && (
+          <h2 className="text-2xl font-bold text-tinta">Bienvenido, <span className="text-primary">{flujo.nombre}</span></h2>
+        )}
         {error && <Alerta tipo="error" titulo="Error">{error}</Alerta>}
         {!lista && !error && <Cargando />}
         {lista && (
@@ -280,8 +283,8 @@ export function Gracias() {
         <span className="flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-semibold">
           <Lock className="size-4" /> Proceso finalizado de forma segura
         </span>
-        <p className="pt-4 text-sm text-exito-borde">Registraduría Nacional del Estado Civil</p>
-        <p className="text-xs text-exito-borde/80">VotoSeguro Colombia · Versión 2026</p>
+        <p className="pt-4 text-sm text-exito-borde">VotoSeguro · Simulación académica sin efectos electorales</p>
+        <p className="text-xs text-exito-borde/80">Universidad Manuela Beltrán · Versión 2026</p>
       </main>
       <footer className="flex flex-col gap-3 px-6 pb-12 md:mx-auto md:w-full md:max-w-sm">
         {flujo.tokenVotante && (

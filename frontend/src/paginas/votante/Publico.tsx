@@ -1,11 +1,12 @@
-// Pantallas públicas: acceso restringido, verificación de comprobante y resultados de votaciones cerradas.
-import { CheckCircle2, Lock, Search, ShieldAlert, XCircle } from "lucide-react";
+// Pantallas públicas: acceso restringido, verificación de participación y resultados de votaciones cerradas.
+import { CheckCircle2, Lock, Search, XCircle } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
-import { api, ErrorApi, fechaHora, miles, type Resultados } from "../../api";
+import { api, ErrorApi, fechaDia, miles, soloFecha, type Resultados } from "../../api";
 import { BarrasCandidatos, Dona } from "../../componentes/Graficos";
-import { Alerta, AvatarCandidato, BigButton, Cargando, GovHeader, Pantalla } from "../../componentes/ui";
+import { Alerta, AvatarCandidato, BigButton, Cargando, Campo, GovHeader, LockBadge, Pantalla } from "../../componentes/ui";
 import { useVotante } from "../../sesion";
+import { TIPOS } from "./Identificacion";
 
 export function Bloqueado() {
   const navegar = useNavigate();
@@ -32,9 +33,9 @@ export function Bloqueado() {
         <section className="rounded-xl border-[1.5px] border-alerta-texto/30 bg-alerta-bg p-4">
           <p className="text-sm font-bold text-alerta-texto">¿Qué puede hacer?</p>
           <ul className="flex flex-col gap-1 pt-2 text-sm text-alerta-fuerte">
-            <li>• Acercarse a un puesto de atención de la Registraduría</li>
-            <li>• Verificar su inscripción en la página oficial</li>
-            <li>• Llamar a la línea de atención: 018000 965 965</li>
+            <li>• Volver a inscribirse en la Registraduría simulada de VotoSeguro</li>
+            <li>• Escribir al equipo del proyecto (el correo está en la <a href="/privacidad" className="font-bold underline">Política de privacidad</a>)</li>
+            <li>• Recuerde que VotoSeguro es una simulación: no afecta su inscripción real como votante</li>
           </ul>
         </section>
         <BigButton variante="contorno" onClick={() => { reiniciar(); navegar("/", { replace: true }); }}>
@@ -45,67 +46,113 @@ export function Bloqueado() {
   );
 }
 
-interface Verificacion {
-  encontrado: boolean; eleccion?: string; codigo_eleccion?: string; hora_aproximada?: string; hash_voto?: string;
-  integro?: boolean; firma_valida?: boolean; escrutado?: boolean;
+interface Participacion {
+  nombre: string;
+  tipo_documento: string;
+  documento: string | null;
+  votaciones: { eleccion: string; codigo: string; fecha: string }[];
 }
 
+/** Verificación de comprobante por cédula y fecha de nacimiento: dice si la persona votó y en qué votación. */
 export function VerificarComprobante() {
   const navegar = useNavigate();
-  const [codigo, setCodigo] = useState("");
-  const [resultado, setResultado] = useState<Verificacion>();
-  const [cargando, setCargando] = useState(false);
+  const [consulta, setConsulta] = useState({ tipo_documento: "CC", documento: "", fecha_nacimiento: "" });
+  const [datos, setDatos] = useState<Participacion>();
   const [error, setError] = useState<string>();
+  const [cargando, setCargando] = useState(false);
 
-  async function verificar(e: FormEvent) {
+  async function consultar(e: FormEvent) {
     e.preventDefault();
     setCargando(true);
     setError(undefined);
+    setDatos(undefined);
     try {
-      setResultado(await api<Verificacion>(`/api/publico/verificar/${encodeURIComponent(codigo.trim())}`));
+      setDatos(await api<Participacion>("/api/publico/participacion", { cuerpo: consulta }));
     } catch (err) {
-      setError(err instanceof ErrorApi ? err.message : "Error al verificar");
+      setError(err instanceof ErrorApi ? err.message : "No fue posible hacer la consulta");
     } finally {
       setCargando(false);
     }
   }
 
-  const valido = resultado?.encontrado && resultado.integro && resultado.firma_valida;
+  const cambiar = (campo: keyof typeof consulta) => (e: { target: { value: string } }) =>
+    setConsulta((c) => ({ ...c, [campo]: e.target.value }));
+
   return (
     <Pantalla estrecha>
-      <GovHeader titulo="Verificar comprobante" subtitulo="Confirme que su voto fue registrado" onVolver={() => navegar("/")} />
+      <GovHeader titulo="Verificar comprobante" subtitulo="Consulte con su cédula si su voto quedó registrado"
+        onVolver={() => navegar("/")} />
       <main className="contenido flex flex-1 flex-col gap-5 p-5 md:p-8">
-        <form onSubmit={verificar} className="tarjeta flex flex-col gap-3 p-5 md:p-8">
-          <label htmlFor="codigo" className="text-sm font-semibold">Código de verificación</label>
-          <input id="codigo" className="entrada font-mono tracking-widest uppercase" placeholder="VS-2026-XXXXXXXX"
-            required pattern="[Vv][Ss]-\d{4}-[A-Za-z0-9]{8}" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
-          <BigButton variante="primario" cargando={cargando}><Search className="size-5" /> Verificar</BigButton>
+        <LockBadge />
+        <form onSubmit={consultar} className="tarjeta flex flex-col gap-4 p-5 md:p-8">
+          <div className="grid gap-4 md:grid-cols-2">
+            <Campo etiqueta="Tipo de Documento" id="tipo">
+              <select id="tipo" className="entrada" value={consulta.tipo_documento} onChange={cambiar("tipo_documento")}>
+                {TIPOS.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+              </select>
+            </Campo>
+            <Campo etiqueta="Número de Documento" id="documento">
+              <input id="documento" className="entrada" inputMode="numeric" required autoComplete="off"
+                pattern="[0-9A-Za-z]{5,15}" title="Entre 5 y 15 caracteres, sin puntos ni espacios"
+                placeholder="Ej: 1020304050" value={consulta.documento} onChange={cambiar("documento")} />
+            </Campo>
+            <Campo etiqueta="Fecha de nacimiento" id="nacimiento">
+              <input id="nacimiento" type="date" className="entrada" required max={new Date().toISOString().slice(0, 10)}
+                value={consulta.fecha_nacimiento} onChange={cambiar("fecha_nacimiento")} />
+            </Campo>
+          </div>
+          <BigButton type="submit" variante="primario" cargando={cargando}><Search className="size-5" /> Consultar</BigButton>
         </form>
-        {error && <Alerta tipo="error" titulo="Error">{error}</Alerta>}
-        {resultado && !resultado.encontrado && (
-          <Alerta tipo="error" titulo="Comprobante no encontrado" icono={<XCircle className="size-5" />}>
-            Revise que el código esté bien escrito.
-          </Alerta>
-        )}
-        {resultado?.encontrado && (
-          <section className="tarjeta flex flex-col gap-3 p-5 md:p-8">
-            <div className={`flex items-center gap-2 font-bold ${valido ? "text-exito" : "text-peligro"}`}>
-              {valido ? <CheckCircle2 className="size-6" /> : <ShieldAlert className="size-6" />}
-              {valido ? "Voto registrado e íntegro" : "El voto no superó la verificación de integridad"}
-            </div>
-            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
-              <dt className="text-tinta-2">Votación</dt><dd className="font-semibold">{resultado.eleccion}</dd>
-              <dt className="text-tinta-2">Código</dt><dd className="font-mono">{resultado.codigo_eleccion}</dd>
-              <dt className="text-tinta-2">Hora aprox.</dt><dd>{fechaHora(resultado.hora_aproximada!)}</dd>
-              <dt className="text-tinta-2">Firma ECDSA</dt><dd>{resultado.firma_valida ? "Válida" : "Inválida"}</dd>
-              <dt className="text-tinta-2">Escrutado</dt><dd>{resultado.escrutado ? "Sí" : "Pendiente del cierre"}</dd>
-              <dt className="text-tinta-2">Hash</dt><dd className="font-mono text-[10px] break-all">{resultado.hash_voto}</dd>
-            </dl>
-            <p className="text-xs text-tinta-2">La verificación confirma que su voto cifrado está en la urna digital. No revela por quién votó.</p>
-          </section>
-        )}
+        {error && <Alerta tipo="error" titulo="Sin resultados" icono={<XCircle className="size-5" />}>{error}</Alerta>}
+        {datos && <ResultadoParticipacion datos={datos} />}
       </main>
     </Pantalla>
+  );
+}
+
+function ResultadoParticipacion({ datos }: { datos: Participacion }) {
+  const voto = datos.votaciones.length > 0;
+  return (
+    <>
+      <section className="tarjeta flex flex-col gap-4 p-5 pb-6 md:p-8">
+        <div className={`flex items-center gap-2 text-lg font-bold ${voto ? "text-exito" : "text-alerta-texto"}`}>
+          {voto ? <CheckCircle2 className="size-6" /> : <XCircle className="size-6" />}
+          {voto ? "Sí registra voto" : "No registra votos"}
+        </div>
+        <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
+          <dt className="text-tinta-2">Votante</dt><dd className="font-semibold">{datos.nombre}</dd>
+          <dt className="text-tinta-2">Documento</dt><dd>{datos.tipo_documento} {datos.documento ?? "—"}</dd>
+          <dt className="text-tinta-2">Fecha de consulta</dt><dd>{soloFecha(new Date().toISOString())}</dd>
+        </dl>
+        {voto && (
+          <div className="overflow-x-auto rounded-xl border-[1.5px] border-linea">
+            <table className="w-full text-left text-sm">
+              <thead className="bg-sutil-2 text-xs text-tinta-2 uppercase">
+                <tr>
+                  <th scope="col" className="px-3 py-2">Votación en la que participó</th>
+                  <th scope="col" className="px-3 py-2">Fecha del voto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {datos.votaciones.map((v) => (
+                  <tr key={v.codigo} className="border-t border-linea">
+                    <td className="px-3 py-2">
+                      <p className="font-semibold">{v.eleccion}</p>
+                      <p className="font-mono text-xs text-tinta-2">{v.codigo}</p>
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">{fechaDia(v.fecha)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+        <p className="text-xs text-tinta-2">
+          Esta consulta solo confirma si usted votó y en qué fecha. No muestra por quién: su voto no está asociado a su
+          identidad.
+        </p>
+      </section>
+    </>
   );
 }
 

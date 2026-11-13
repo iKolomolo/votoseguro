@@ -15,9 +15,19 @@ def normalizar(texto: str) -> str:
     return " ".join(sin_tildes.casefold().split())
 
 
+EDAD_MINIMA = 18  # Constitución art. 98: la ciudadanía (y el derecho al voto) se ejerce desde los 18 años
+
+
 def edad(nacimiento: date, hoy: date | None = None) -> int:
+    """Años cumplidos: el año de nacimiento, descontando uno si este año aún no llega el cumpleaños."""
     hoy = hoy or date.today()
     return hoy.year - nacimiento.year - ((hoy.month, hoy.day) < (nacimiento.month, nacimiento.day))
+
+
+def es_menor(nacimiento: date | str, hoy: date | None = None) -> bool:
+    if isinstance(nacimiento, str):
+        nacimiento = date.fromisoformat(nacimiento[:10])
+    return edad(nacimiento, hoy) < EDAD_MINIMA
 
 
 def campo_persona(db: Session, persona: Persona, campo: str) -> str | None:
