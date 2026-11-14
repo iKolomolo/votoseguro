@@ -11,6 +11,7 @@ datos: la huella dactilar y los demás datos impresos no se analizan.
 import hashlib
 import io
 import re
+import threading
 import unicodedata
 from datetime import date
 from difflib import SequenceMatcher
@@ -46,10 +47,16 @@ def abrir(datos: bytes) -> Image.Image:
     return ImageOps.exif_transpose(imagen)
 
 
-def _preparar(imagen: Image.Image) -> Image.Image:
-    gris = ImageOps.grayscale(imagen)
-    if gris.width < ANCHO_OCR:
-        gris = gris.resize((ANCHO_OCR, round(gris.height * ANCHO_OCR / gris.width)), Image.Resampling.LANCZOS)
+def _preparar(datos: bytes) -> Image.Image:
+    """Escala de grises con el lado largo en ANCHO_OCR. Las fotos de celular (12 MP o más) se reducen: el OCR tarda
+    y gasta memoria según los píxeles, y la cédula se lee igual de bien a ese tamaño."""
+    imagen = Image.open(io.BytesIO(datos))
+    # En JPEG, decodifica directamente a un tamaño menor (sin cargar los 12 MP en memoria).
+    imagen.draft("L", (ANCHO_OCR, ANCHO_OCR))
+    gris = ImageOps.grayscale(ImageOps.exif_transpose(imagen))
+    escala = ANCHO_OCR / max(gris.size)
+    if abs(escala - 1) > 0.05:
+        gris = gris.resize((round(gris.width * escala), round(gris.height * escala)), Image.Resampling.LANCZOS)
     return ImageOps.autocontrast(gris, cutoff=1)
 
 
@@ -73,7 +80,7 @@ def leer_texto(datos: bytes) -> str:
         import pytesseract
     except ImportError as e:
         raise OcrNoDisponible("El servidor no tiene instalado el lector de documentos (Tesseract)") from e
-    imagen = _preparar(abrir(datos))
+    imagen = _preparar(datos)
     textos = []
     # psm 6: bloque uniforme (conserva las líneas, sirve para las etiquetas y la MRZ); psm 11: texto disperso.
     for psm in (6, 11):
@@ -82,6 +89,17 @@ def leer_texto(datos: bytes) -> str:
         except pytesseract.TesseractNotFoundError as e:
             raise OcrNoDisponible("El servidor no tiene instalado el lector de documentos (Tesseract)") from e
     return "\n".join(textos)
+
+
+# Una sola lectura a la vez: cada una usa unos 160 MB y casi toda la CPU; dos simultáneas en el servidor gratuito
+# (512 MB) podrían agotarlo. Las demás esperan su turno.
+_UNA_LECTURA = threading.Semaphore(1)
+
+
+def leer_cedula(frente: bytes, reverso: bytes) -> str:
+    """Texto de las dos caras de la cédula."""
+    with _UNA_LECTURA:
+        return leer_texto(frente) + "\n" + leer_texto(reverso)
 
 
 # ---------- Número ----------

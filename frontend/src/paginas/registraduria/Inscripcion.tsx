@@ -343,7 +343,7 @@ function PasoCedula({ token, conRostro, onListo, onCompleta, onDescartada }: {
       {error && <Alerta tipo="error" titulo="No se pudo validar la cédula" icono={<AlertCircle className="size-5" />}>{error}</Alerta>}
       <div className="pb-6 md:mx-auto md:w-full md:max-w-sm">
         <BigButton variante="primario" onClick={enviar} cargando={enviando} disabled={!frente || !reverso}>
-          {enviando ? "Leyendo la cédula…" : !frente ? "Tome o suba la foto del frente" : !reverso ? "Tome o suba la foto del reverso"
+          {enviando ? "Leyendo la cédula, puede tardar hasta 2 minutos…" : !frente ? "Tome o suba la foto del frente" : !reverso ? "Tome o suba la foto del reverso"
             : conRostro ? "Continuar al registro del rostro →" : "Terminar inscripción →"}
         </BigButton>
       </div>

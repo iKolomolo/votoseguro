@@ -9,6 +9,7 @@ from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Request, UploadFile, status
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field, field_validator
 from ..config import get_settings
 from ..crypto import biometria as bio
@@ -136,7 +137,9 @@ async def cedula(db: DB, request: Request,
     ip = ip_cliente(request)
     if settings.verificar_numero_cedula:
         try:
-            texto = documento.leer_texto(datos) + "\n" + documento.leer_texto(datos_reverso)
+            # El OCR tarda (más aún con la CPU del plan gratuito): corre en otro hilo para que el servidor siga
+            # respondiendo, incluida la revisión de salud de Render, que si no lo da por caído y lo reinicia.
+            texto = await run_in_threadpool(documento.leer_cedula, datos, datos_reverso)
         except documento.OcrNoDisponible as e:
             raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, str(e)) from None
         resultado = documento.verificar(texto, estado["datos"])

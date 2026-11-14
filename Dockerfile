@@ -17,6 +17,9 @@ COPY --from=frontend /app/frontend/dist /app/frontend/dist
 # Los archivos temporales (Tesseract escribe la foto de la cédula un instante para leerla) van a /dev/shm, que está
 # en la memoria RAM: la foto nunca se escribe en disco. Si /dev/shm no existiera, Python usa la carpeta temporal normal.
 ENV TMPDIR=/dev/shm
+# Tesseract en un solo hilo: con la poca CPU del plan gratuito, varios hilos compiten y la lectura es ~3 veces más
+# lenta.
+ENV OMP_THREAD_LIMIT=1
 EXPOSE 8000
 # Render asigna el puerto en $PORT; en local se usa 8000.
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]
